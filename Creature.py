@@ -10,11 +10,14 @@ class Creature:
         self.speed = 50  # pixels per second
         self.radius = 10
         self.color = (255, 255, 255)  # White
-        self.alive = True
+        self.energy = 30 # number of seconds it can survive
 
         # Brain outputs
         self.turn_rate = 0 
         self.acceleration = 0 # pixels per second^2
+
+    def is_alive(self):
+        return self.energy > 0
 
     def think(self):
         """
@@ -27,7 +30,8 @@ class Creature:
         """
         Make all updates to self each frame
         """
-        
+        if not self.is_alive(): return
+
         self.think()
 
         # Rotate direction
@@ -38,11 +42,14 @@ class Creature:
         self.x += math.cos(self.direction) * self.speed * dt
         self.y += math.sin(self.direction) * self.speed * dt
 
+        # Use energy
+        self.energy -= dt
+
     def can_reproduce(self):
         """
         Returns a boolean indicating if the creature can spawn a child
         """
-        return self.alive and random.random() < 0.001 # 0.1% chance per frame
+        return self.is_alive() and random.random() < 0.001 # 0.1% chance per frame
     
     def clone(self):
         """
@@ -58,5 +65,5 @@ class Creature:
         return
 
     def draw(self, screen):
-        if self.alive:
+        if self.is_alive():
             pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
