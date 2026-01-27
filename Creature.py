@@ -62,6 +62,8 @@ class Creature:
         Returns a new creature with the same genes as parent
         """
         new_creature = Creature(self.x, self.y)
+        new_creature.speed = self.speed
+        new_creature.direction = self.direction
         new_creature.brain = self.brain.clone()
         return new_creature
     
@@ -69,7 +71,7 @@ class Creature:
         """"
         Applies random mutations to creature
         """
-        self.direction += math.pi # for now just turn the direction around 
+        self.brain.mutate()
 
     def draw(self, screen):
         if self.is_alive():
