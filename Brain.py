@@ -81,8 +81,7 @@ class Brain:
             self.add_random_connection()
 
         if random.random() < REMOVE_EDGE_MUTATION_RATE:
-            # todo
-            pass
+            self.remove_random_connection()
 
         if random.random() < NEW_NODE_MUTATION_RATE:
             # todo
@@ -127,4 +126,8 @@ class Brain:
             weight = random.gauss(NEW_WEIGHT_MEAN, NEW_WEIGHT_SD)
             self.connections[(from_node, to_node)] = weight
             return
+        
+    def remove_random_connection(self):
+        random_key = random.choice(list(self.connections.keys()))
+        del self.connections[random_key]
     
