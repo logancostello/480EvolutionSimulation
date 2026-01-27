@@ -15,6 +15,13 @@ class Brain:
 
         self.initialize_connections()
 
+    def clone(self):
+        new_brain = Brain(self.n_inputs, self.n_outputs)
+        new_brain.next_node_id = self.next_node_id
+        new_brain.topological_order = self.topological_order
+        new_brain.connections = self.connections
+        return new_brain
+
     def initialize_connections(self):
         """ Connect every input node to every output node with a random connection """
         for i in range(self.n_inputs):
