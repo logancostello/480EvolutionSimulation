@@ -2,6 +2,8 @@ import pygame
 import math
 import random
 
+from Brain import Brain
+
 class Creature:
     def __init__(self, x, y):
         self.x = x
@@ -11,6 +13,7 @@ class Creature:
         self.radius = 10
         self.color = (255, 255, 255)  # White
         self.energy = 30 # number of seconds it can survive
+        self.brain = Brain(n_inputs=1, n_outputs=2)
 
         # Brain outputs
         self.turn_rate = 0 
@@ -18,13 +21,6 @@ class Creature:
 
     def is_alive(self):
         return self.energy > 0
-
-    def think(self):
-        """
-        Compute output nodes of brain, informing the updates to be made
-        """
-        self.turn_rate = 1.0
-        self.acceleration = 5.0
     
     def update(self, dt):
         """
@@ -32,7 +28,10 @@ class Creature:
         """
         if not self.is_alive(): return
 
-        self.think()
+        brain_outputs = self.brain.think()
+
+        self.turn_rate = brain_outputs[0]
+        self.acceleration = brain_outputs[1]
 
         # Rotate direction
         self.direction += self.turn_rate * dt
