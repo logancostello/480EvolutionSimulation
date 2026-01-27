@@ -93,6 +93,7 @@ class Brain:
 
 
     def mutate_weights(self):
+        """ Randomly mutate the weights of brain connections """
         for key in self.connections:
             if random.random() < WEIGHT_MUTATION_RATE:
                 self.connections[key] += random.gauss(WEIGHT_MUTATION_MEAN, WEIGHT_MUTATION_SD)
@@ -101,6 +102,7 @@ class Brain:
                 self.connections[key] *= -1
 
     def add_random_connection(self):
+        """ Randomly add a connection in the brain """
         for _ in range(NUM_VALID_MUTATION_ATTEMPTS):
             # pick two random nodes
             from_node = random.randint(0, self.next_node_id - 1)
@@ -128,6 +130,7 @@ class Brain:
             return
         
     def remove_random_connection(self):
+        """ Randomly remove a connection from the brain """
         random_key = random.choice(list(self.connections.keys()))
         del self.connections[random_key]
     
