@@ -4,20 +4,23 @@ import random
 
 from Brain import Brain
 
+MAX_ACCELERATION = 5
+MAX_TURN_RATE = 5
+
 class Creature:
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.direction = 0  # angle in radians
-        self.speed = 50  # pixels per second
+        self.speed = 10  # pixels per second
         self.radius = 10
         self.color = (255, 255, 255)  # White
         self.energy = 30 # number of seconds it can survive
-        self.brain = Brain(n_inputs=1, n_outputs=2)
+        self.brain = Brain(n_inputs=6, n_outputs=2)
 
         # Brain outputs
         self.turn_rate = 0 
-        self.acceleration = 0 # pixels per second^2
+        self.acceleration = 0
 
     def is_alive(self):
         return self.energy > 0
@@ -28,10 +31,17 @@ class Creature:
         """
         if not self.is_alive(): return
 
-        brain_outputs = self.brain.think()
+        brain_outputs = self.brain.think([
+            1, # constant input
+            self.energy,
+            self.acceleration,
+            self.turn_rate,
+            self.speed,
+            self.direction
+        ])
 
-        self.turn_rate = brain_outputs[0]
-        self.acceleration = brain_outputs[1]
+        self.turn_rate = MAX_TURN_RATE * brain_outputs[0]
+        self.acceleration = MAX_ACCELERATION * brain_outputs[1]
 
         # Rotate direction
         self.direction += self.turn_rate * dt
