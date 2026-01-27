@@ -1,13 +1,14 @@
 import pygame
 import sys
-import math
-from Creature import Creature
-from Food import Food
+from Simulation import Simulation
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
 
 BLACK = (0, 0, 0)
+
+simulation = Simulation(SCREEN_WIDTH, SCREEN_HEIGHT)
+simulation.initialize()
 
 # Create screen
 pygame.init()
@@ -17,28 +18,6 @@ pygame.display.set_caption("Evolution Simulation")
 # Clock for controlling framerate
 clock = pygame.time.Clock()
 FPS = 60
-
-creature_population = []
-creature_population.append(Creature(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-
-food_population = []
-food_population.append(Food(SCREEN_WIDTH * 2 // 3, SCREEN_HEIGHT // 2))
-
-def handle_eating(creatures, food):
-    for c in creatures:
-        if not c.is_alive():
-            continue
-
-        for f in food:
-            if not f.is_alive():
-                continue
-
-            dist = math.sqrt((c.x - f.x) ** 2 + (c.y - f.y) ** 2)
-            collision_distance = c.radius + f.radius
-
-            if dist < collision_distance:
-                c.energy += f.energy
-                f.energy = 0
 
 # Main update loop
 running = True
@@ -52,30 +31,10 @@ while running:
             running = False
     
     screen.fill(BLACK)
-    
-    # Update creatures
-    for creature in creature_population:
-        creature.update(dt)
 
-    # Handling eating
-    handle_eating(creature_population, food_population)
+    simulation.update(dt)
 
-    # Get new creatures (if any)
-    new_creatures = []
-    for creature in creature_population:
-        if creature.can_reproduce():
-            child = creature.clone()
-            child.mutate()
-            new_creatures.append(child)
-    creature_population += new_creatures
-
-    # Draw food
-    for food in food_population:
-        food.draw(screen)
-    
-    # Draw creatures
-    for creature in creature_population:
-        creature.draw(screen)
+    simulation.draw(screen)
 
     pygame.display.flip()    
 
