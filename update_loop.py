@@ -1,5 +1,6 @@
 import pygame
 import sys
+import math
 from Creature import Creature
 from Food import Food
 
@@ -21,7 +22,23 @@ creature_population = []
 creature_population.append(Creature(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
 
 food_population = []
-food_population.append(Food(100, 100))
+food_population.append(Food(SCREEN_WIDTH * 2 // 3, SCREEN_HEIGHT // 2))
+
+def handle_eating(creatures, food):
+    for c in creatures:
+        if not c.is_alive():
+            continue
+
+        for f in food:
+            if not f.is_alive():
+                continue
+
+            dist = math.sqrt((c.x - f.x) ** 2 + (c.y - f.y) ** 2)
+            collision_distance = c.radius + f.radius
+
+            if dist < collision_distance:
+                c.energy += f.energy
+                f.energy = 0
 
 # Main update loop
 running = True
@@ -39,6 +56,9 @@ while running:
     # Update creatures
     for creature in creature_population:
         creature.update(dt)
+
+    # Handling eating
+    handle_eating(creature_population, food_population)
 
     # Get new creatures (if any)
     new_creatures = []
@@ -58,7 +78,6 @@ while running:
         creature.draw(screen)
 
     pygame.display.flip()    
-    clock.tick(FPS)
 
 pygame.quit()
 sys.exit()
