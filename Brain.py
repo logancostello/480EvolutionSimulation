@@ -1,5 +1,6 @@
 import random
 import math 
+from collections import Counter
 
 NEW_WEIGHT_MEAN = 0
 NEW_WEIGHT_SD = 0.5
@@ -90,7 +91,9 @@ class Brain:
         if random.random() < REMOVE_NODE_MUTATION_RATE:
             # todo
             pass
-
+        
+        # Resort nodes for correct order of computation when thinking
+        self.topological_sort()
 
     def mutate_weights(self):
         """ Randomly mutate the weights of brain connections """
@@ -133,4 +136,31 @@ class Brain:
         """ Randomly remove a connection from the brain """
         random_key = random.choice(list(self.connections.keys()))
         del self.connections[random_key]
-    
+
+    def topological_sort(self):
+
+        num_incoming_edges = Counter()
+        for (from_node, to_node) in self.connections:
+            num_incoming_edges[to_node] += 1
+
+        no_incoming_edges = set()
+        for node in range(self.next_node_id):
+            if num_incoming_edges[node] == 0:
+                no_incoming_edges.add(node)
+
+        topological_order = []
+
+        while len(no_incoming_edges) > 0:
+            node = no_incoming_edges.pop()
+            topological_order.append(node)
+
+            for (from_node, to_node) in self.connections:
+                if from_node != node:
+                    continue
+                
+                num_incoming_edges[to_node] -= 1
+                if num_incoming_edges[to_node] == 0:
+                    no_incoming_edges.add(to_node)
+
+        self.topological_order = topological_order
+
