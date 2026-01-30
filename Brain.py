@@ -134,6 +134,9 @@ class Brain:
         
     def remove_random_connection(self):
         """ Randomly remove a connection from the brain """
+        if len(self.connections.keys()) == 0: 
+            return
+         
         random_key = random.choice(list(self.connections.keys()))
         del self.connections[random_key]
 
