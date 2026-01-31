@@ -23,7 +23,7 @@ class Brain:
     def __init__(self, n_inputs, n_outputs):
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
-        self.next_node_id = n_inputs + n_outputs
+        self.nodes = list(range(n_inputs + n_outputs))
 
         self.topological_order = [i for i in range(n_inputs + n_outputs)]
         self.connections = {} # (from, to) -> weight
@@ -33,7 +33,7 @@ class Brain:
     def clone(self):
         """ Return deep copy of brain """
         new_brain = Brain(self.n_inputs, self.n_outputs)
-        new_brain.next_node_id = self.next_node_id
+        new_brain.nodes = list(self.nodes)
         new_brain.topological_order = list(self.topological_order)
         new_brain.connections = dict(self.connections)
         return new_brain
@@ -107,9 +107,10 @@ class Brain:
     def add_random_connection(self):
         """ Randomly add a connection in the brain """
         for _ in range(NUM_VALID_MUTATION_ATTEMPTS):
+
             # pick two random nodes
-            from_node = random.randint(0, self.next_node_id - 1)
-            to_node = random.randint(0, self.next_node_id - 1)
+            from_node = random.choice(self.nodes)
+            to_node = random.choice(self.nodes)
 
             # check for connection from output node
             if self.n_inputs <= from_node < self.n_inputs + self.n_outputs:
@@ -147,7 +148,7 @@ class Brain:
             num_incoming_edges[to_node] += 1
 
         no_incoming_edges = set()
-        for node in range(self.next_node_id):
+        for node in self.nodes:
             if num_incoming_edges[node] == 0:
                 no_incoming_edges.add(node)
 
