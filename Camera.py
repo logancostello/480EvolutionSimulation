@@ -11,7 +11,7 @@ class Camera:
         self.y = world_height / 2
         
         # Zoom level (1.0 = normal, >1.0 = zoomed in, <1.0 = zoomed out)
-        self.zoom = 1.0
+        self.zoom = 0.25
         self.min_zoom = 0.1
         self.max_zoom = 10.0
         
