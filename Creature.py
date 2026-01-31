@@ -7,18 +7,30 @@ from Brain import Brain
 MAX_SPEED = 100 # 100 pixels per second
 MAX_TURN_RATE = math.pi # 180 degrees per second
 
+DEFAULT_DIRECTION = 0
+DEFAULT_RADIUS = 25
+DEFAULT_COLOR = (255, 255, 255) # white
+DEFAULT_ENERGY = 30
+DEFAULT_MIN_TIME_BETWEEN_REPRODUCING = 20
+DEFAULT_MIN_ENERGY_TO_REPRODUCE = 15
+
+REPRODUCTION_CHANCE = 0.1 # per frame
+
 class Creature:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.direction = 0  # angle in radians
-        self.radius = 25
-        self.color = (255, 255, 255)  # White
-        self.energy = 30 # number of seconds it can survive
-        self.brain = Brain(n_inputs=4, n_outputs=2)
+        self.direction = DEFAULT_DIRECTION  # angle in radians
+        self.radius = DEFAULT_RADIUS # pixels
+        self.color = DEFAULT_COLOR
+        self.energy = DEFAULT_ENERGY # number of seconds it can survive
+        self.min_energy_to_reproduce = DEFAULT_MIN_ENERGY_TO_REPRODUCE
+        self.time_since_reproduced = 0
+        self.min_time_between_reproducing = DEFAULT_MIN_TIME_BETWEEN_REPRODUCING
+        self.brain = Brain(n_inputs=3, n_outputs=2)
 
         # Brain outputs
-        self.turn_rate = 0 
+        self.turn_rate = 0.5 
         self.speed = 50
 
     def is_alive(self):
@@ -33,9 +45,8 @@ class Creature:
         # Outputs between [-1, 1]
         brain_outputs = self.brain.think([
             1, # constant input
-            self.speed,
+            self.energy,
             self.direction,
-            self.turn_rate
         ])
 
         self.turn_rate = MAX_TURN_RATE * brain_outputs[0] # [-max_turn_rate, max_turn_rate]
@@ -50,17 +61,33 @@ class Creature:
 
         # Use energy
         self.energy -= dt
+        self.time_since_reproduced += dt
 
     def can_reproduce(self):
-        """
-        Returns a boolean indicating if the creature can spawn a child
-        """
-        return self.is_alive() and random.random() < 0.001 # 0.1% chance per frame
+        """ Returns a boolean indicating if the creature can spawn a child """
+        if not self.is_alive():
+            return False
+        
+        # Check enough time has passed
+        if self.time_since_reproduced < self.min_time_between_reproducing:
+            return False
+        
+        # Check enough energy to reproduce
+        if self.energy < self.min_energy_to_reproduce:
+            return False
+
+        # All conditions met, random chance to reproduce
+        if random.random() > REPRODUCTION_CHANCE:
+            return False
+        
+        return True
     
     def clone(self):
-        """
-        Returns a new creature with the same genes as parent
-        """
+        """ Returns a new creature with the same genes as parent """
+        # Reset time since reproduced
+        self.time_since_reproduced = 0
+
+        # Deep copy
         new_creature = Creature(self.x, self.y)
         new_creature.speed = self.speed
         new_creature.direction = self.direction
@@ -68,9 +95,7 @@ class Creature:
         return new_creature
     
     def mutate(self):
-        """"
-        Applies random mutations to creature
-        """
+        """" Applies random mutations to creature """
         self.brain.mutate()
 
     def draw(self, screen, camera):

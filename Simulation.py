@@ -5,7 +5,7 @@ import pygame
 from Creature import Creature
 from Food import Food
 
-NUM_INIT_FOOD = 500
+NUM_INIT_FOOD = 5000
 
 class Simulation:
     def __init__(self, world_width, world_height):
