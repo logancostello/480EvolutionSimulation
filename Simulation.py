@@ -1,32 +1,31 @@
 import math
 import random
+import pygame
 
 from Creature import Creature
 from Food import Food
 
-NUM_INIT_FOOD = 50
+NUM_INIT_FOOD = 500
 
 class Simulation:
-    def __init__(self, screen_width, screen_height):
-        self.screen_width = screen_width
-        self.screen_height = screen_height
+    def __init__(self, world_width, world_height):
+        self.simulation_width = world_width
+        self.simulation_height = world_height
 
         self.creatures = []
         self.food = []
 
-        self.food.append(Food(self.screen_width * 2 // 3, self.screen_height // 2))
-
     def initialize(self):
         # hard code add one creature for now
-        self.creatures.append(Creature(self.screen_width // 2, self.screen_height // 2))
+        self.creatures.append(Creature(self.simulation_width // 2, self.simulation_height // 2))
 
         # randomly generate food throughout world
         for _ in range(NUM_INIT_FOOD):
             self.spawn_random_food()
 
     def spawn_random_food(self):
-        x = self.screen_width * random.random()
-        y = self.screen_height * random.random()
+        x = self.simulation_width * random.random()
+        y = self.simulation_height * random.random()
         f = Food(x, y)
         self.food.append(f)
 
@@ -38,12 +37,17 @@ class Simulation:
 
         self.handle_reproduction()        
 
-    def draw(self, screen):
+    def draw(self, screen, camera):
+        visible_area = camera.get_visible_area()
+        visible_rect = pygame.Rect(visible_area)
+
         for f in self.food:
-            f.draw(screen)
+            if visible_rect.collidepoint(f.x, f.y):
+                f.draw(screen, camera)
     
         for c in self.creatures:
-            c.draw(screen)
+            if visible_rect.collidepoint(c.x, c.y):
+                c.draw(screen, camera)
 
     def handle_eating(self):
         for c in self.creatures:
