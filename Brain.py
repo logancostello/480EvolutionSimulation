@@ -85,8 +85,7 @@ class Brain:
             self.remove_random_connection()
 
         if random.random() < NEW_NODE_MUTATION_RATE:
-            # todo
-            pass
+            self.add_random_node()
 
         if random.random() < REMOVE_NODE_MUTATION_RATE:
             # todo
@@ -128,6 +127,10 @@ class Brain:
             if (from_node, to_node) in self.connections:
                 continue
 
+            # check if connection will create a cycle
+            if self.creates_cycle(from_node, to_node):
+                continue
+
             # add new connection
             weight = random.gauss(NEW_WEIGHT_MEAN, NEW_WEIGHT_SD)
             self.connections[(from_node, to_node)] = weight
@@ -140,6 +143,27 @@ class Brain:
          
         random_key = random.choice(list(self.connections.keys()))
         del self.connections[random_key]
+
+    def add_random_node(self):
+        """ Randomly split an existing connection with a new node """
+
+        if len(self.connections.keys()) == 0: 
+            return
+        
+        from_node, to_node = random.choice(list(self.connections.keys()))
+        connection_weight = self.connections[(from_node, to_node)]
+        new_node = max(self.nodes) + 1
+
+        self.nodes.append(new_node)
+        del self.connections[(from_node, to_node)]
+
+        if random.random() < 0.5:
+            self.connections[(from_node, new_node)] = connection_weight
+            self.connections[(new_node, to_node)] = 1
+        else:
+            self.connections[(from_node, new_node)] = 1
+            self.connections[(new_node, to_node)] = connection_weight
+
 
     def topological_sort(self):
 
@@ -168,3 +192,23 @@ class Brain:
 
         self.topological_order = topological_order
 
+    def creates_cycle(self, from_node, to_node):
+        """ Checks if adding a connection will create a cycle """
+
+        # Get all to_node neighbors 
+        neighbors = []
+        for f_node, t_node in self.connections:
+            if f_node != to_node:
+                continue
+            
+            if t_node == from_node:
+                return True
+            
+            neighbors.append(t_node)
+
+        # No neighbors are from_node, check if they can reach
+        for neighbor in neighbors:
+            if self.creates_cycle(from_node, neighbor):
+                return True
+            
+        return False
