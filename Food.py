@@ -1,4 +1,7 @@
 import pygame
+import math
+
+ENERGY_DENSITY = 0.25
 
 class Food:
     def __init__(self, x, y):
@@ -6,7 +9,7 @@ class Food:
         self.y = y
         self.radius = 10
         self.color =  (92,169,4)  # Green
-        self.energy = 2 # number of seconds it adds to a creatures life when eaten
+        self.energy = ENERGY_DENSITY * math.pi * self.radius ** 2
 
     def is_alive(self):
         return self.energy > 0
