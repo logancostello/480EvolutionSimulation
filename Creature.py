@@ -12,7 +12,7 @@ class Creature:
         self.x = x
         self.y = y
         self.direction = 0  # angle in radians
-        self.radius = 10
+        self.radius = 25
         self.color = (255, 255, 255)  # White
         self.energy = 30 # number of seconds it can survive
         self.brain = Brain(n_inputs=4, n_outputs=2)
@@ -73,6 +73,10 @@ class Creature:
         """
         self.brain.mutate()
 
-    def draw(self, screen):
-        if self.is_alive():
-            pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
+    def draw(self, screen, camera):
+        if not self.is_alive():
+            return
+        
+        screen_pos = camera.world_to_screen((self.x, self.y))
+        scaled_radius = self.radius * camera.zoom
+        pygame.draw.circle(screen, self.color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
