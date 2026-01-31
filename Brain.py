@@ -88,8 +88,7 @@ class Brain:
             self.add_random_node()
 
         if random.random() < REMOVE_NODE_MUTATION_RATE:
-            # todo
-            pass
+            self.remove_random_node()
         
         # Resort nodes for correct order of computation when thinking
         self.topological_sort()
@@ -164,9 +163,47 @@ class Brain:
             self.connections[(from_node, new_node)] = 1
             self.connections[(new_node, to_node)] = connection_weight
 
+    def remove_random_node(self):
+        """ Randomly removes an inner node, keeping either its in edge or out edge """
+
+        # Ensure inner nodes exist
+        if len(self.nodes) == self.n_inputs + self.n_outputs:
+            return 
+        
+        node_to_remove = random.choice(self.nodes[self.n_inputs + self.n_outputs:])
+
+        # Get all edges into and out of node
+        in_nodes = []
+        out_nodes = []
+        for from_node, to_node in self.connections:
+            if from_node == node_to_remove:
+                out_nodes.append(to_node)
+
+            elif to_node == node_to_remove:
+                in_nodes.append(from_node)
+
+        # Connect parents of the node to the children of the node
+        for in_node in in_nodes:
+            for out_node in out_nodes:
+
+                if (in_node, out_node) in self.connections:
+                    continue
+
+                if random.random() < 0.5:
+                    self.connections[(in_node, out_node)] = self.connections[(in_node, node_to_remove)]
+                else:
+                    self.connections[(in_node, out_node)] = self.connections[(node_to_remove, out_node)]
+
+        # Remove node and edges to it
+        self.nodes.remove(node_to_remove)
+        for in_node in in_nodes:
+            del self.connections[(in_node, node_to_remove)]
+        for out_node in out_nodes:
+            del self.connections[(node_to_remove, out_node)]
+
 
     def topological_sort(self):
-
+        """ Orders nodes such that a node's parents come before it """
         num_incoming_edges = Counter()
         for (from_node, to_node) in self.connections:
             num_incoming_edges[to_node] += 1
@@ -206,7 +243,7 @@ class Brain:
             
             neighbors.append(t_node)
 
-        # No neighbors are from_node, check if they can reach
+        # No neighbors are from_node, check if neighbors can reach from_node 
         for neighbor in neighbors:
             if self.creates_cycle(from_node, neighbor):
                 return True
