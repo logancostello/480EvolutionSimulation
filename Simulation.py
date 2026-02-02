@@ -1,4 +1,3 @@
-import math
 import random
 import pygame
 
@@ -58,8 +57,8 @@ class Simulation:
                 if not f.is_alive():
                     continue
 
-                dist = math.sqrt((c.x - f.x) ** 2 + (c.y - f.y) ** 2)
-                collision_distance = c.radius + f.radius
+                dist = (c.x - f.x) ** 2 + (c.y - f.y) ** 2
+                collision_distance = (c.radius + f.radius) ** 2
 
                 if dist < collision_distance:
                     c.energy += f.energy
