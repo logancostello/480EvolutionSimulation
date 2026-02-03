@@ -1,6 +1,7 @@
 import pygame
 import sys
 from Simulation import Simulation
+from Menu import Menu
 from Camera import Camera
 
 SCREEN_WIDTH = 1200
@@ -9,15 +10,20 @@ SCREEN_HEIGHT = 800
 SIMULATION_WIDTH = 12000
 SIMULATION_HEIGHT = 8000
 
-BLACK = (0, 0, 0)
+MENU_WIDTH = 200
+MENU_HEIGHT = SCREEN_HEIGHT
 
-simulation = Simulation(SIMULATION_WIDTH, SIMULATION_HEIGHT)
-simulation.initialize()
+BLACK = (0, 0, 0)
 
 # Create screen
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Evolution Simulation")
+
+simulation = Simulation(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+simulation.initialize()
+menu = Menu(MENU_WIDTH, MENU_HEIGHT)
+menu.draw(screen)
 
 camera = Camera(SIMULATION_WIDTH, SIMULATION_HEIGHT)  
 
@@ -41,8 +47,11 @@ while running:
     screen.fill(BLACK)
 
     simulation.update(dt)
+    menu.update_stats(simulation)
 
     simulation.draw(screen, camera)
+    # menu.display_stats(screen, camera)
+    menu.draw(screen)
 
     pygame.display.flip()    
 
