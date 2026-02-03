@@ -85,3 +85,4 @@ class CreatureButton:
 
     def hit(self, pos):
         return self.rect.collidepoint(pos)
+    

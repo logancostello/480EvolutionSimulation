@@ -80,3 +80,8 @@ class Simulation:
 
     def food_list(self):
         return self.food
+    
+    def get_creatures(self):
+        return self.creatures
+    def get_food(self):
+        return self.food

@@ -144,3 +144,6 @@ class Creature:
         screen_pos = camera.world_to_screen((self.x, self.y))
         scaled_radius = self.radius * camera.zoom
         pygame.draw.circle(screen, self.color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
+
+    def getEnergy(self):
+        return self.energy
