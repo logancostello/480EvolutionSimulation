@@ -19,13 +19,13 @@ class Simulation:
     def initialize(self):
         # randomly generate creatures throughout world
         for _ in range(NUM_INIT_CREATURE):
-            pt = self.spawn_random_point()
-            self.creatures.append(Creature(pt[0], pt[1]))
+            x, y = self.spawn_random_point()
+            self.creatures.append(Creature(x, y))
 
         # randomly generate food throughout world
         for _ in range(NUM_INIT_FOOD):
-            pt = self.spawn_random_point()
-            self.food.append(Food(pt[0], pt[1]))
+            x, y = self.spawn_random_point()
+            self.food.append(Food(x, y))
 
     def spawn_random_point(self):
         x = self.simulation_width * random.random()

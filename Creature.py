@@ -65,43 +65,37 @@ class Creature:
         self.time_since_reproduced += dt
 
     def distance_to_food(self, food):
-        """ Returns the distance of food object from creature, if food is within VIEWABLE_DISTANCE """
-        dist = math.hypot((food.x - self.x), (food.y - self.y))
-        if VIEWABLE_DISTANCE >= dist:
-            return dist
-        return None
+        """ Returns the distance of food object from creature """
+        return math.hypot((food.x - self.x), (food.y - self.y))
 
     def direction_to_food(self, food):
-        """ Returns the amount to turn to face the food, if food is within field of view. """
+        """ Return the relative direction of food object to creature """
         diff_x = food.x - self.x
         diff_y = food.y - self.y
-
         angle_to_point = math.atan2(diff_y, diff_x)
         delta = angle_to_point - self.direction
         normalised_delta = (delta + math.pi) % (2 * math.pi) - math.pi
-        if abs(normalised_delta) <= VIEWABLE_ANGLE:
-            return normalised_delta
-
-        return None
+        return normalised_delta
 
     def find_food(self, food_list):
         """ Returns the distance and direction to the single closest food item, if one is in vision"""
-        dist = None
-        turn = None
+        # defaults if none visible
+        dist_to_closest = VIEWABLE_DISTANCE
+        dir_to_closest = 0
 
+        # check if each food is in FOV and closest
         for food_piece in food_list:
-            if self.distance_to_food(food_piece) is not None and self.direction_to_food(food_piece) is not None:
-                if dist is None or self.distance_to_food(food_piece) < dist:
-                    dist = self.distance_to_food(food_piece)
-                    turn = self.direction_to_food(food_piece)
+            dist = self.distance_to_food(food_piece)
+            dir = self.direction_to_food(food_piece)
 
-        if dist is None or turn is None:
-            dist = VIEWABLE_DISTANCE # no food visible
-            turn = 0
-        else:
-            dist /= VIEWABLE_DISTANCE # normalize [0, 1]
+            if abs(dir) <= VIEWABLE_ANGLE and dist < dist_to_closest:
+                dist_to_closest = dist
+                dir_to_closest = dir
 
-        return dist, turn
+        # normalize
+        dist_to_closest /= VIEWABLE_DISTANCE
+
+        return dist_to_closest, dir_to_closest
 
     def can_reproduce(self):
         """ Returns a boolean indicating if the creature can spawn a child """
