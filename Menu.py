@@ -23,10 +23,10 @@ class Menu:
         self.buttons = []
 
     def update_stats(self, simulation):
-        self.creatures_a = [c for c in simulation.get_creatures() if c.is_alive()]
-        self.num_creatures_a = len([c for c in simulation.get_creatures() if c.is_alive()])
-        self.num_creatures_d = len([c for c in simulation.get_creatures() if not c.is_alive()])
-        self.num_food = len([f for f in simulation.get_food() if f.is_alive()])
+        self.creatures_a = [c for c in simulation.creatures if c.is_alive()]
+        self.num_creatures_a = len([c for c in simulation.creatures if c.is_alive()])
+        self.num_creatures_d = len([c for c in simulation.creatures if not c.is_alive()])
+        self.num_food = len(simulation.food)
 
     def display_stats(self, screen):
         num_creatures_a = self.num_creatures_a

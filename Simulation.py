@@ -34,7 +34,7 @@ class Simulation:
 
     def update(self, dt):
         for c in self.creatures:
-            c.update(dt, self.food_list())
+            c.update(dt, self.food)
 
         self.handle_eating()
 
@@ -53,20 +53,25 @@ class Simulation:
                 c.draw(screen, camera)
 
     def handle_eating(self):
+
+        # check for collisions between creatures and food
+        eaten = set()
         for c in self.creatures:
             if not c.is_alive():
                 continue
 
             for f in self.food:
-                if not f.is_alive():
-                    continue
-
                 dist = (c.x - f.x) ** 2 + (c.y - f.y) ** 2
                 collision_distance = (c.radius + f.radius) ** 2
 
+                # if colliding, the creature gets the food's energy
                 if dist < collision_distance:
                     c.energy += f.energy
-                    f.energy = 0
+                    f.energy = 0 # set to zero incase another creature is also touching food
+                    eaten.add(f)
+
+        # remove eaten food from memory
+        self.food = [f for f in self.food if f not in eaten]
 
     def handle_reproduction(self):
         new_creatures = []
@@ -76,11 +81,3 @@ class Simulation:
                 child.mutate()
                 new_creatures.append(child)
         self.creatures += new_creatures
-
-    def food_list(self):
-        return self.food
-    
-    def get_creatures(self):
-        return self.creatures
-    def get_food(self):
-        return self.food
