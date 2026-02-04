@@ -1,8 +1,8 @@
 import pygame
 import sys
-from Simulation import Simulation
-from Menu import Menu
-from Camera import Camera
+from world.Simulation import Simulation
+from world.Menu import Menu
+from world.Camera import Camera
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800

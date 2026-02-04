@@ -1,11 +1,15 @@
 import random
 import pygame
 
-from Creature import Creature
-from Food import Food
+from entities.Creature import Creature
+from entities.Food import Food
+from spacial.Point import Point
+from spacial.QuadTree import QuadTree
 
 NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
+
+MAX_FOOD_RADIUS = 10
 
 
 class Simulation:
@@ -14,29 +18,32 @@ class Simulation:
         self.simulation_height = world_height
 
         self.creatures = []
-        self.food = []
+        self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
 
     def initialize(self):
         # randomly generate creatures throughout world
         for _ in range(NUM_INIT_CREATURE):
-            pt = self.spawn_random_point()
-            self.creatures.append(Creature(pt[0], pt[1]))
+            pos = self.spawn_random_point()
+            self.creatures.append(Creature(pos))
 
         # randomly generate food throughout world
         for _ in range(NUM_INIT_FOOD):
-            pt = self.spawn_random_point()
-            self.food.append(Food(pt[0], pt[1]))
+            pos = self.spawn_random_point()
+            self.food.insert(Food(pos, MAX_FOOD_RADIUS))
 
     def spawn_random_point(self):
         x = self.simulation_width * random.random()
         y = self.simulation_height * random.random()
-        return x, y
+        return Point(x, y)
 
     def update(self, dt):
         for c in self.creatures:
-            c.update(dt, self.food_list())
+            nearby_food = self.food.get_nearby(c.pos, c.viewable_distance)
+            c.update(dt, nearby_food)
 
         self.handle_eating()
+
+        self.handle_creature_death()
 
         self.handle_reproduction()
 
@@ -44,29 +51,32 @@ class Simulation:
         visible_area = camera.get_visible_area()
         visible_rect = pygame.Rect(visible_area)
 
-        for f in self.food:
-            if visible_rect.collidepoint(f.x, f.y):
+        for f in self.food.get_all():
+            if visible_rect.collidepoint(f.pos.x, f.pos.y):
                 f.draw(screen, camera)
 
         for c in self.creatures:
-            if visible_rect.collidepoint(c.x, c.y):
+            if visible_rect.collidepoint(c.pos.x, c.pos.y):
                 c.draw(screen, camera)
 
     def handle_eating(self):
+
+        # check for collisions between creatures and food
+        eaten = set()
         for c in self.creatures:
-            if not c.is_alive():
-                continue
-
-            for f in self.food:
-                if not f.is_alive():
-                    continue
-
-                dist = (c.x - f.x) ** 2 + (c.y - f.y) ** 2
+            for f in self.food.get_nearby(c.pos, c.radius + MAX_FOOD_RADIUS):
+                dist = (c.pos.x - f.pos.x) ** 2 + (c.pos.y - f.pos.y) ** 2
                 collision_distance = (c.radius + f.radius) ** 2
 
+                # if colliding, the creature gets the food's energy
                 if dist < collision_distance:
                     c.energy += f.energy
-                    f.energy = 0
+                    f.energy = 0 # set to zero incase another creature is also touching food
+                    eaten.add(f)
+
+        # remove eaten food from memory
+        for e in eaten:
+            self.food.remove(e)
 
     def handle_reproduction(self):
         new_creatures = []
@@ -77,10 +87,5 @@ class Simulation:
                 new_creatures.append(child)
         self.creatures += new_creatures
 
-    def food_list(self):
-        return self.food
-    
-    def get_creatures(self):
-        return self.creatures
-    def get_food(self):
-        return self.food
+    def handle_creature_death(self):
+        self.creatures = [c for c in self.creatures if c.energy > 0]
