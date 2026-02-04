@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 
-from Brain import Brain
+from entities.Brain import Brain
 
 MAX_SPEED = 100  # 100 pixels per second
 MAX_TURN_RATE = math.pi  # 180 degrees per second
