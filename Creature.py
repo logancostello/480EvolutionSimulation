@@ -44,7 +44,7 @@ class Creature:
         """
         if not self.is_alive(): return
 
-        closest_food_direction, closest_food_distance = self.find_food(food_list)
+        closest_food_distance, closest_food_direction = self.find_food(food_list)
 
         # Outputs between [-1, 1]
         brain_outputs = self.brain.think([
@@ -91,14 +91,20 @@ class Creature:
 
     def find_food(self, food_list):
         """ Returns the distance and direction to the single closest food item, if one is in vision"""
-        dist = float('inf')
-        turn = float('inf')
+        dist = None
+        turn = None
 
         for food_piece in food_list:
             if self.distance_to_food(food_piece) is not None and self.direction_to_food(food_piece) is not None:
-                if self.distance_to_food(food_piece) < dist:
+                if dist is None or self.distance_to_food(food_piece) < dist:
                     dist = self.distance_to_food(food_piece)
                     turn = self.direction_to_food(food_piece)
+
+        if dist is None or turn is None:
+            dist = VIEWABLE_DISTANCE # no food visible
+            turn = 0
+        else:
+            dist /= VIEWABLE_DISTANCE # normalize [0, 1]
 
         return dist, turn
 
