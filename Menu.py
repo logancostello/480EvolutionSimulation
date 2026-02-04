@@ -15,25 +15,19 @@ class Menu:
 
         self.font = pygame.font.SysFont(SYS_FONT, 24)
         self.creatures = []
-        self.creatures_a = []
-        self.num_creatures_a = 0
-        self.num_creatures_d = 0
         self.num_food = 0
 
         self.buttons = []
 
     def update_stats(self, simulation):
-        self.creatures_a = [c for c in simulation.creatures if c.is_alive()]
-        self.num_creatures_a = len([c for c in simulation.creatures if c.is_alive()])
-        self.num_creatures_d = len([c for c in simulation.creatures if not c.is_alive()])
+        self.creatures = simulation.creatures
         self.num_food = len(simulation.food)
 
     def display_stats(self, screen):
-        num_creatures_a = self.num_creatures_a
-        num_creatures_d = self.num_creatures_d
+        num_creatures = len(self.creatures)
         num_food = self.num_food
 
-        stats_text = f"Creatures Alive: {num_creatures_a}\nCreatures Dead: {num_creatures_d}\nFood: {num_food}"
+        stats_text = f"Creatures: {num_creatures}\nFood: {num_food}"
         text_surface = self.font.render(stats_text, True, (255, 255, 255))
         rect = text_surface.get_rect()
         # rect = pygame.Rect(10, 10, self.menu_width-10, BUTTON_HEIGHT, width=5)
@@ -54,7 +48,7 @@ class Menu:
         cursor = pygame.mouse.get_pos()
 
         # For creature in the number of creatures, we should draw stats for each creature
-        for creature in self.creatures_a:
+        for creature in self.creatures:
             self.buttons.append(CreatureButton(creature, pygame.Rect(10, cur_y, self.menu_width - 20, BUTTON_HEIGHT)))
             cur_y += BUTTON_HEIGHT
         

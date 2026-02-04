@@ -36,14 +36,10 @@ class Creature:
         self.turn_rate = 0.5
         self.speed = 50
 
-    def is_alive(self):
-        return self.energy > 0
-
     def update(self, dt, food_list):
         """
         Make all updates to self each frame
         """
-        if not self.is_alive(): return
 
         closest_food_distance, closest_food_direction = self.find_food(food_list)
 
@@ -109,8 +105,6 @@ class Creature:
 
     def can_reproduce(self):
         """ Returns a boolean indicating if the creature can spawn a child """
-        if not self.is_alive():
-            return False
 
         # Check enough time has passed
         if self.time_since_reproduced < self.min_time_between_reproducing:
@@ -143,9 +137,6 @@ class Creature:
         self.brain.mutate()
 
     def draw(self, screen, camera):
-        if not self.is_alive():
-            return
-
         screen_pos = camera.world_to_screen((self.x, self.y))
         scaled_radius = self.radius * camera.zoom
         pygame.draw.circle(screen, self.color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))

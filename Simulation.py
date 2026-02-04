@@ -38,6 +38,8 @@ class Simulation:
 
         self.handle_eating()
 
+        self.handle_creature_death()
+
         self.handle_reproduction()
 
     def draw(self, screen, camera):
@@ -57,9 +59,6 @@ class Simulation:
         # check for collisions between creatures and food
         eaten = set()
         for c in self.creatures:
-            if not c.is_alive():
-                continue
-
             for f in self.food:
                 dist = (c.x - f.x) ** 2 + (c.y - f.y) ** 2
                 collision_distance = (c.radius + f.radius) ** 2
@@ -81,3 +80,6 @@ class Simulation:
                 child.mutate()
                 new_creatures.append(child)
         self.creatures += new_creatures
+
+    def handle_creature_death(self):
+        self.creatures = [c for c in self.creatures if c.energy > 0]
