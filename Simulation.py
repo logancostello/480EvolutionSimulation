@@ -4,7 +4,9 @@ import pygame
 from Creature import Creature
 from Food import Food
 
-NUM_INIT_FOOD = 5000
+NUM_INIT_CREATURE = 3
+NUM_INIT_FOOD = 1000
+
 
 class Simulation:
     def __init__(self, world_width, world_height):
@@ -15,26 +17,28 @@ class Simulation:
         self.food = []
 
     def initialize(self):
-        # hard code add one creature for now
-        self.creatures.append(Creature(self.simulation_width // 2, self.simulation_height // 2))
+        # randomly generate creatures throughout world
+        for _ in range(NUM_INIT_CREATURE):
+            pt = self.spawn_random_point()
+            self.creatures.append(Creature(pt[0], pt[1]))
 
         # randomly generate food throughout world
         for _ in range(NUM_INIT_FOOD):
-            self.spawn_random_food()
+            pt = self.spawn_random_point()
+            self.food.append(Food(pt[0], pt[1]))
 
-    def spawn_random_food(self):
+    def spawn_random_point(self):
         x = self.simulation_width * random.random()
         y = self.simulation_height * random.random()
-        f = Food(x, y)
-        self.food.append(f)
+        return x, y
 
     def update(self, dt):
         for c in self.creatures:
-            c.update(dt)
+            c.update(dt, self.food_list())
 
         self.handle_eating()
 
-        self.handle_reproduction()        
+        self.handle_reproduction()
 
     def draw(self, screen, camera):
         visible_area = camera.get_visible_area()
@@ -43,7 +47,7 @@ class Simulation:
         for f in self.food:
             if visible_rect.collidepoint(f.x, f.y):
                 f.draw(screen, camera)
-    
+
         for c in self.creatures:
             if visible_rect.collidepoint(c.x, c.y):
                 c.draw(screen, camera)
@@ -72,3 +76,11 @@ class Simulation:
                 child.mutate()
                 new_creatures.append(child)
         self.creatures += new_creatures
+
+    def food_list(self):
+        return self.food
+    
+    def get_creatures(self):
+        return self.creatures
+    def get_food(self):
+        return self.food
