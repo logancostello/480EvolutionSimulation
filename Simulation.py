@@ -4,7 +4,7 @@ import pygame
 from Creature import Creature
 from Food import Food
 
-NUM_INIT_CREATURE = 3
+NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
 
 

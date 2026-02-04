@@ -13,7 +13,8 @@ DEFAULT_COLOR = (255, 255, 255)  # white
 DEFAULT_ENERGY = 30
 DEFAULT_MIN_TIME_BETWEEN_REPRODUCING = 20
 DEFAULT_MIN_ENERGY_TO_REPRODUCE = 15
-VIEWABLE_DISTANCE = 20  # number of pixels the creature can see in front of themselves
+VIEWABLE_DISTANCE = 150  # number of pixels the creature can see in front of themselves
+VIEWABLE_ANGLE = math.pi / 2
 
 REPRODUCTION_CHANCE = 0.1  # per frame
 
@@ -29,7 +30,7 @@ class Creature:
         self.min_energy_to_reproduce = DEFAULT_MIN_ENERGY_TO_REPRODUCE
         self.time_since_reproduced = 0
         self.min_time_between_reproducing = DEFAULT_MIN_TIME_BETWEEN_REPRODUCING
-        self.brain = Brain(n_inputs=5, n_outputs=2)
+        self.brain = Brain(n_inputs=3, n_outputs=2)
 
         # Brain outputs
         self.turn_rate = 0.5
@@ -49,8 +50,6 @@ class Creature:
         # Outputs between [-1, 1]
         brain_outputs = self.brain.think([
             1,  # constant input
-            self.energy,
-            self.direction,
             closest_food_direction,
             closest_food_distance
         ])
@@ -77,14 +76,14 @@ class Creature:
         return None
 
     def direction_to_food(self, food):
-        """ Returns the amount to turn to face the food, if food is within .5 radians of direction. """
+        """ Returns the amount to turn to face the food, if food is within field of view. """
         diff_x = food.x - self.x
         diff_y = food.y - self.y
 
         angle_to_point = math.atan2(diff_y, diff_x)
         delta = angle_to_point - self.direction
         normalised_delta = (delta + math.pi) % (2 * math.pi) - math.pi
-        if abs(normalised_delta) <= 0.25:
+        if abs(normalised_delta) <= VIEWABLE_ANGLE:
             return normalised_delta
 
         return None

@@ -1,7 +1,7 @@
 import pygame
 import math
 
-ENERGY_DENSITY = 0.25
+ENERGY_DENSITY = 0.05
 
 class Food:
     def __init__(self, x, y):
