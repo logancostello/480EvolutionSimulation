@@ -20,9 +20,8 @@ REPRODUCTION_CHANCE = 0.1  # per frame
 
 
 class Creature:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self, pos):
+        self.pos = pos
         self.direction = DEFAULT_DIRECTION  # angle in radians
         self.radius = DEFAULT_RADIUS  # pixels
         self.color = DEFAULT_COLOR
@@ -57,8 +56,8 @@ class Creature:
         self.direction += self.turn_rate * dt
 
         # Move
-        self.x += math.cos(self.direction) * self.speed * dt
-        self.y += math.sin(self.direction) * self.speed * dt
+        self.pos.x += math.cos(self.direction) * self.speed * dt
+        self.pos.y += math.sin(self.direction) * self.speed * dt
 
         # Use energy
         self.energy -= dt
@@ -66,12 +65,12 @@ class Creature:
 
     def distance_to_food(self, food):
         """ Returns the distance of food object from creature """
-        return math.hypot((food.x - self.x), (food.y - self.y))
+        return math.hypot((food.pos.x - self.pos.x), (food.pos.y - self.pos.y))
 
     def direction_to_food(self, food):
         """ Return the relative direction of food object to creature """
-        diff_x = food.x - self.x
-        diff_y = food.y - self.y
+        diff_x = food.pos.x - self.pos.x
+        diff_y = food.pos.y - self.pos.y
         angle_to_point = math.atan2(diff_y, diff_x)
         delta = angle_to_point - self.direction
         normalised_delta = (delta + math.pi) % (2 * math.pi) - math.pi
@@ -120,7 +119,7 @@ class Creature:
         self.time_since_reproduced = 0
 
         # Deep copy
-        new_creature = Creature(self.x, self.y)
+        new_creature = Creature(self.pos)
         new_creature.speed = self.speed
         new_creature.direction = self.direction
         new_creature.brain = self.brain.clone()
@@ -131,7 +130,7 @@ class Creature:
         self.brain.mutate()
 
     def draw(self, screen, camera):
-        screen_pos = camera.world_to_screen((self.x, self.y))
+        screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
         scaled_radius = self.radius * camera.zoom
         pygame.draw.circle(screen, self.color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
 

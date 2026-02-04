@@ -3,6 +3,7 @@ import pygame
 
 from entities.Creature import Creature
 from entities.Food import Food
+from spacial.Point import Point
 
 NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
@@ -19,18 +20,18 @@ class Simulation:
     def initialize(self):
         # randomly generate creatures throughout world
         for _ in range(NUM_INIT_CREATURE):
-            x, y = self.spawn_random_point()
-            self.creatures.append(Creature(x, y))
+            pos = self.spawn_random_point()
+            self.creatures.append(Creature(pos))
 
         # randomly generate food throughout world
         for _ in range(NUM_INIT_FOOD):
-            x, y = self.spawn_random_point()
-            self.food.append(Food(x, y))
+            pos = self.spawn_random_point()
+            self.food.append(Food(pos))
 
     def spawn_random_point(self):
         x = self.simulation_width * random.random()
         y = self.simulation_height * random.random()
-        return x, y
+        return Point(x, y)
 
     def update(self, dt):
         for c in self.creatures:
@@ -47,11 +48,11 @@ class Simulation:
         visible_rect = pygame.Rect(visible_area)
 
         for f in self.food:
-            if visible_rect.collidepoint(f.x, f.y):
+            if visible_rect.collidepoint(f.pos.x, f.pos.y):
                 f.draw(screen, camera)
 
         for c in self.creatures:
-            if visible_rect.collidepoint(c.x, c.y):
+            if visible_rect.collidepoint(c.pos.x, c.pos.y):
                 c.draw(screen, camera)
 
     def handle_eating(self):
@@ -60,7 +61,7 @@ class Simulation:
         eaten = set()
         for c in self.creatures:
             for f in self.food:
-                dist = (c.x - f.x) ** 2 + (c.y - f.y) ** 2
+                dist = (c.pos.x - f.pos.x) ** 2 + (c.pos.y - f.pos.y) ** 2
                 collision_distance = (c.radius + f.radius) ** 2
 
                 # if colliding, the creature gets the food's energy
