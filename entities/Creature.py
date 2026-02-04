@@ -30,6 +30,8 @@ class Creature:
         self.time_since_reproduced = 0
         self.min_time_between_reproducing = DEFAULT_MIN_TIME_BETWEEN_REPRODUCING
         self.brain = Brain(n_inputs=3, n_outputs=2)
+        self.viewable_distance = VIEWABLE_DISTANCE
+        self.viewable_angle = VIEWABLE_ANGLE
 
         # Brain outputs
         self.turn_rate = 0.5
@@ -76,23 +78,23 @@ class Creature:
         normalised_delta = (delta + math.pi) % (2 * math.pi) - math.pi
         return normalised_delta
 
-    def find_food(self, food_list):
+    def find_food(self, nearby_food):
         """ Returns the distance and direction to the single closest food item, if one is in vision"""
         # defaults if none visible
-        dist_to_closest = VIEWABLE_DISTANCE
+        dist_to_closest = self.viewable_distance
         dir_to_closest = 0
 
         # check if each food is in FOV and closest
-        for food_piece in food_list:
+        for food_piece in nearby_food:
             dist = self.distance_to_food(food_piece)
             dir = self.direction_to_food(food_piece)
 
-            if abs(dir) <= VIEWABLE_ANGLE and dist < dist_to_closest:
+            if abs(dir) <= self.viewable_angle and dist < dist_to_closest:
                 dist_to_closest = dist
                 dir_to_closest = dir
 
         # normalize
-        dist_to_closest /= VIEWABLE_DISTANCE
+        dist_to_closest /= self.viewable_distance
 
         return dist_to_closest, dir_to_closest
 

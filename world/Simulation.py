@@ -9,6 +9,8 @@ from spacial.QuadTree import QuadTree
 NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
 
+MAX_FOOD_RADIUS = 10
+
 
 class Simulation:
     def __init__(self, world_width, world_height):
@@ -27,7 +29,7 @@ class Simulation:
         # randomly generate food throughout world
         for _ in range(NUM_INIT_FOOD):
             pos = self.spawn_random_point()
-            self.food.insert(Food(pos))
+            self.food.insert(Food(pos, MAX_FOOD_RADIUS))
 
     def spawn_random_point(self):
         x = self.simulation_width * random.random()
@@ -36,7 +38,8 @@ class Simulation:
 
     def update(self, dt):
         for c in self.creatures:
-            c.update(dt, self.food.get_all())
+            nearby_food = self.food.get_nearby(c.pos, c.viewable_distance)
+            c.update(dt, nearby_food)
 
         self.handle_eating()
 
@@ -61,7 +64,7 @@ class Simulation:
         # check for collisions between creatures and food
         eaten = set()
         for c in self.creatures:
-            for f in self.food.get_all():
+            for f in self.food.get_nearby(c.pos, c.radius + MAX_FOOD_RADIUS):
                 dist = (c.pos.x - f.pos.x) ** 2 + (c.pos.y - f.pos.y) ** 2
                 collision_distance = (c.radius + f.radius) ** 2
 

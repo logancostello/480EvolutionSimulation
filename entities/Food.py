@@ -4,9 +4,9 @@ import math
 ENERGY_DENSITY = 0.05
 
 class Food:
-    def __init__(self, pos):
+    def __init__(self, pos, radius):
         self.pos = pos
-        self.radius = 10
+        self.radius = radius
         self.color =  (92,169,4)  # Green
         self.energy = ENERGY_DENSITY * math.pi * self.radius ** 2
     

@@ -118,3 +118,26 @@ class QuadTree:
         for child in self.children:
             all_entities.extend(child.get_all())
         return all_entities
+    
+    def get_nearby(self, pos, radius):
+        """ Returns a list of entities that are in or close to the given circle """
+
+        # project circle center onto rectangle
+        proj_x = max(self.top_left.x, min(pos.x, self.bottom_right.x))
+        proj_y = max(self.top_left.y, min(pos.y, self.bottom_right.y))
+
+        # determine if distance to projection > radius
+        dist_sq = (pos.x - proj_x) ** 2 + (pos.y - proj_y) ** 2
+        radius_sq = radius * radius
+        if dist_sq > radius_sq:
+            return [] # no overlap, therefore no nearby entities
+        
+        # if overlapping with leaf, return the contents
+        if not self.divided:
+            return self.contents
+        
+        # if overlapping with parent, recurse
+        nearby_entities = []
+        for child in self.children:
+            nearby_entities.extend(child.get_nearby(pos, radius))
+        return nearby_entities
