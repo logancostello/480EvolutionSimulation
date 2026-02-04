@@ -21,7 +21,7 @@ class Menu:
 
     def update_stats(self, simulation):
         self.creatures = simulation.creatures
-        self.num_food = len(simulation.food)
+        self.num_food = len(simulation.food.get_all())
 
     def display_stats(self, screen):
         num_creatures = len(self.creatures)

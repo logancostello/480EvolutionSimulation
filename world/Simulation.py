@@ -4,6 +4,7 @@ import pygame
 from entities.Creature import Creature
 from entities.Food import Food
 from spacial.Point import Point
+from spacial.QuadTree import QuadTree
 
 NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
@@ -15,7 +16,7 @@ class Simulation:
         self.simulation_height = world_height
 
         self.creatures = []
-        self.food = []
+        self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
 
     def initialize(self):
         # randomly generate creatures throughout world
@@ -26,7 +27,7 @@ class Simulation:
         # randomly generate food throughout world
         for _ in range(NUM_INIT_FOOD):
             pos = self.spawn_random_point()
-            self.food.append(Food(pos))
+            self.food.insert(Food(pos))
 
     def spawn_random_point(self):
         x = self.simulation_width * random.random()
@@ -35,7 +36,7 @@ class Simulation:
 
     def update(self, dt):
         for c in self.creatures:
-            c.update(dt, self.food)
+            c.update(dt, self.food.get_all())
 
         self.handle_eating()
 
@@ -47,7 +48,7 @@ class Simulation:
         visible_area = camera.get_visible_area()
         visible_rect = pygame.Rect(visible_area)
 
-        for f in self.food:
+        for f in self.food.get_all():
             if visible_rect.collidepoint(f.pos.x, f.pos.y):
                 f.draw(screen, camera)
 
@@ -60,7 +61,7 @@ class Simulation:
         # check for collisions between creatures and food
         eaten = set()
         for c in self.creatures:
-            for f in self.food:
+            for f in self.food.get_all():
                 dist = (c.pos.x - f.pos.x) ** 2 + (c.pos.y - f.pos.y) ** 2
                 collision_distance = (c.radius + f.radius) ** 2
 
@@ -71,7 +72,8 @@ class Simulation:
                     eaten.add(f)
 
         # remove eaten food from memory
-        self.food = [f for f in self.food if f not in eaten]
+        for e in eaten:
+            self.food.remove(e)
 
     def handle_reproduction(self):
         new_creatures = []
