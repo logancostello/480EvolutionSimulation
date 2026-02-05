@@ -11,20 +11,23 @@ NUM_INIT_FOOD = 1000
 
 MAX_FOOD_RADIUS = 10
 
-
 class Simulation:
-    def __init__(self, world_width, world_height):
+    def __init__(self, world_width, world_height, datastore):
         self.simulation_width = world_width
         self.simulation_height = world_height
-
+        self.datastore = datastore
         self.creatures = []
         self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
+        self.next_creature_id = 1
 
     def initialize(self):
         # randomly generate creatures throughout world
         for _ in range(NUM_INIT_CREATURE):
             pos = self.spawn_random_point()
-            self.creatures.append(Creature(pos))
+            creature = Creature(self.next_creature_id, pos)
+            self.creatures.append(creature)
+            self.datastore.add_new_creature(creature)
+            self.next_creature_id += 1
 
         # randomly generate food throughout world
         for _ in range(NUM_INIT_FOOD):
@@ -82,9 +85,10 @@ class Simulation:
         new_creatures = []
         for c in self.creatures:
             if c.can_reproduce():
-                child = c.clone()
-                child.mutate()
+                child = c.reproduce(self.next_creature_id)
+                self.next_creature_id += 1
                 new_creatures.append(child)
+                self.datastore.add_new_creature(child)
         self.creatures += new_creatures
 
     def handle_creature_death(self):
