@@ -71,10 +71,14 @@ while running:
     else:
         if uncapped_mode:
             # Uncapped mode: run as fast as possible
-            clock.tick(TARGET_FPS)
-            
-            for _ in range(simulation_steps_per_frame):
-                simulation.update(FIXED_DT)
+            real_dt = clock.tick(TARGET_FPS) / 1000.0
+            sim_time_advanced = FIXED_DT * simulation_steps_per_frame
+
+            if sim_time_advanced < real_dt:
+                simulation.update(real_dt) 
+            else:
+                for _ in range(simulation_steps_per_frame):
+                    simulation.update(FIXED_DT)
             
             # Auto-adjust simulation speed based on performance
             frames_since_adjustment += 1
