@@ -16,6 +16,7 @@ class Simulation:
         self.simulation_width = world_width
         self.simulation_height = world_height
         self.datastore = datastore
+        self.time = 0 # in seconds
         self.creatures = []
         self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
         self.next_creature_id = 1
@@ -26,7 +27,7 @@ class Simulation:
             pos = self.spawn_random_point()
             creature = Creature(self.next_creature_id, pos)
             self.creatures.append(creature)
-            self.datastore.add_new_creature(creature)
+            self.datastore.add_new_creature(creature, self.time)
             self.next_creature_id += 1
 
         # randomly generate food throughout world
@@ -34,12 +35,19 @@ class Simulation:
             pos = self.spawn_random_point()
             self.food.insert(Food(pos, MAX_FOOD_RADIUS))
 
+        self.datastore.update_real_time(self.time, len(self.creatures), len(self.food.get_all()))
+
     def spawn_random_point(self):
         x = self.simulation_width * random.random()
         y = self.simulation_height * random.random()
         return Point(x, y)
 
     def update(self, dt):
+        self.time += dt
+
+        orig_num_creatures = len(self.creatures)
+        orig_num_food = len(self.food.get_all())
+
         for c in self.creatures:
             nearby_food = self.food.get_nearby(c.pos, c.viewable_distance)
             c.update(dt, nearby_food)
@@ -49,6 +57,9 @@ class Simulation:
         self.handle_creature_death()
 
         self.handle_reproduction()
+
+        if len(self.creatures) != orig_num_creatures or len(self.food.get_all()) != orig_num_food:
+            self.datastore.update_real_time(self.time, len(self.creatures), len(self.food.get_all()))
 
     def draw(self, screen, camera):
         visible_area = camera.get_visible_area()
@@ -88,8 +99,11 @@ class Simulation:
                 child = c.reproduce(self.next_creature_id)
                 self.next_creature_id += 1
                 new_creatures.append(child)
-                self.datastore.add_new_creature(child)
+                self.datastore.add_new_creature(child, self.time)
         self.creatures += new_creatures
 
     def handle_creature_death(self):
+        dead = [c for c in self.creatures if c.energy <= 0]
+        for creature in dead:
+            self.datastore.mark_creature_dead(creature.id, self.time)
         self.creatures = [c for c in self.creatures if c.energy > 0]
