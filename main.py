@@ -33,30 +33,70 @@ camera = Camera(SIMULATION_WIDTH, SIMULATION_HEIGHT)
 clock = pygame.time.Clock()
 FPS = 60
 
+# Speed uncapping toggle
+uncapped_mode = False
+paused = False
+TARGET_FPS = 60
+MIN_FPS = 25
+FIXED_DT = 1.0 / 60.0
+simulation_steps_per_frame = 1
+max_steps_per_frame = 100
+frames_since_adjustment = 0
+adjustment_interval = 30
+
 # Main update loop
 running = True
 while running:
-
-    dt = clock.tick(FPS) / 1000.0  # Delta time in seconds
 
     # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
             datastore.close()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                paused = not paused
+            if event.key == pygame.K_a:
+                uncapped_mode = not uncapped_mode
+                simulation_steps_per_frame = 1  # Reset when toggling
+                print(f"Uncapped mode: {'ON' if uncapped_mode else 'OFF'}")
 
         camera.handle_event(event)
     
     screen.fill(BLACK)
 
-    simulation.update(dt)
-    menu.update_stats(simulation)
+    if paused:
+        clock.tick()
+
+    else:
+        if uncapped_mode:
+            # Uncapped mode: run as fast as possible
+            clock.tick(TARGET_FPS)
+            
+            for _ in range(simulation_steps_per_frame):
+                simulation.update(FIXED_DT)
+            
+            # Auto-adjust simulation speed based on performance
+            frames_since_adjustment += 1
+            if frames_since_adjustment >= adjustment_interval:
+                frames_since_adjustment = 0
+                actual_fps = clock.get_fps()
+                
+                if actual_fps > 50 and simulation_steps_per_frame < max_steps_per_frame:
+                    simulation_steps_per_frame += 1
+                elif actual_fps < MIN_FPS and simulation_steps_per_frame > 1:
+                    simulation_steps_per_frame = max(1, simulation_steps_per_frame - 1)
+        else:
+            # Normal mode: run in real time
+            dt = clock.tick(FPS) / 1000.0
+            simulation.update(dt)
+
+        menu.update_stats(simulation)
 
     simulation.draw(screen, camera)
-    # menu.display_stats(screen, camera)
     menu.draw(screen)
 
-    pygame.display.flip()    
+    pygame.display.flip()
 
 pygame.quit()
 sys.exit()
