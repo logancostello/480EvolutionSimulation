@@ -3,6 +3,7 @@ import math
 import random
 
 from entities.Brain import Brain
+from spacial.Point import Point
 
 MAX_SPEED = 100  # 100 pixels per second
 MAX_TURN_RATE = math.pi  # 180 degrees per second
@@ -24,6 +25,7 @@ class Creature:
         self.id = id
         self.parent = parent # the id of the parent creature
         self.generation = generation # number of generations this lineage has
+        self.age = 0
         self.pos = pos
         self.direction = DEFAULT_DIRECTION  # angle in radians
         self.max_speed = MAX_SPEED
@@ -59,16 +61,18 @@ class Creature:
         self.turn_rate = self.max_turn_rate * brain_outputs[0]  # [-max_turn_rate, max_turn_rate]
         self.speed = ((brain_outputs[1] + 1) / 2) * self.max_speed  # [0, max_speed]
 
-        # Rotate direction
-        self.direction += self.turn_rate * dt
+        if self.age > 2 or self.parent is None:
+            # Rotate direction
+            self.direction += self.turn_rate * dt
 
-        # Move
-        self.pos.x += math.cos(self.direction) * self.speed * dt
-        self.pos.y += math.sin(self.direction) * self.speed * dt
+            # Move
+            self.pos.x += math.cos(self.direction) * self.speed * dt
+            self.pos.y += math.sin(self.direction) * self.speed * dt
 
-        # Use energy
+        # Energy and time updates
         self.energy -= dt
         self.time_since_reproduced += dt
+        self.age += dt
 
     def distance_to_food(self, food):
         """ Returns the distance of food object from creature """
@@ -126,7 +130,8 @@ class Creature:
         self.time_since_reproduced = 0
 
         # Get child creature
-        child = Creature(child_id, self.pos, self.id, self.generation + 1)
+        child_pos = Point(self.pos.x, self.pos.y)
+        child = Creature(child_id, child_pos, self.id, self.generation + 1)
         child.speed = self.speed
         child.direction = self.direction
         child.brain = self.brain.clone()
