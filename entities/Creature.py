@@ -20,9 +20,14 @@ REPRODUCTION_CHANCE = 0.1  # per frame
 
 
 class Creature:
-    def __init__(self, pos):
+    def __init__(self, id, pos, parent=None, generation=1):
+        self.id = id
+        self.parent = parent # the id of the parent creature
+        self.generation = generation # number of generations this lineage has
         self.pos = pos
         self.direction = DEFAULT_DIRECTION  # angle in radians
+        self.max_speed = MAX_SPEED
+        self.max_turn_rate = MAX_TURN_RATE
         self.radius = DEFAULT_RADIUS  # pixels
         self.color = DEFAULT_COLOR
         self.energy = DEFAULT_ENERGY  # number of seconds it can survive
@@ -51,8 +56,8 @@ class Creature:
             closest_food_distance
         ])
 
-        self.turn_rate = MAX_TURN_RATE * brain_outputs[0]  # [-max_turn_rate, max_turn_rate]
-        self.speed = ((brain_outputs[1] + 1) / 2) * MAX_SPEED  # [0, max_speed]
+        self.turn_rate = self.max_turn_rate * brain_outputs[0]  # [-max_turn_rate, max_turn_rate]
+        self.speed = ((brain_outputs[1] + 1) / 2) * self.max_speed  # [0, max_speed]
 
         # Rotate direction
         self.direction += self.turn_rate * dt
@@ -114,18 +119,22 @@ class Creature:
             return False
 
         return True
-
-    def clone(self):
-        """ Returns a new creature with the same genes as parent """
+    
+    def reproduce(self, child_id):
+        """ Returns a child creature """
         # Reset time since reproduced
         self.time_since_reproduced = 0
 
-        # Deep copy
-        new_creature = Creature(self.pos)
-        new_creature.speed = self.speed
-        new_creature.direction = self.direction
-        new_creature.brain = self.brain.clone()
-        return new_creature
+        # Get child creature
+        child = Creature(child_id, self.pos, self.id, self.generation + 1)
+        child.speed = self.speed
+        child.direction = self.direction
+        child.brain = self.brain.clone()
+
+        # Apply mutations
+        child.mutate()
+
+        return child
 
     def mutate(self):
         """" Applies random mutations to creature """

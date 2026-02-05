@@ -3,6 +3,7 @@ import sys
 from world.Simulation import Simulation
 from world.Menu import Menu
 from world.Camera import Camera
+from telemetry.SimulationDatastore import SimulationDatastore
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
@@ -20,7 +21,8 @@ pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Evolution Simulation")
 
-simulation = Simulation(SIMULATION_WIDTH, SIMULATION_HEIGHT)
+datastore = SimulationDatastore()
+simulation = Simulation(SIMULATION_WIDTH, SIMULATION_HEIGHT, datastore)
 simulation.initialize()
 menu = Menu(MENU_WIDTH, MENU_HEIGHT)
 menu.draw(screen)
@@ -41,6 +43,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+            datastore.close()
 
         camera.handle_event(event)
     
