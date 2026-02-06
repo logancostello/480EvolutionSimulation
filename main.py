@@ -36,6 +36,7 @@ FPS = 60
 # Speed uncapping toggle
 uncapped_mode = False
 paused = False
+show_menu = True
 TARGET_FPS = 60
 MIN_FPS = 25
 FIXED_DT = 1.0 / 60.0
@@ -56,6 +57,8 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 paused = not paused
+            if event.key == pygame.K_m:
+                show_menu = not show_menu
             if event.key == pygame.K_a:
                 uncapped_mode = not uncapped_mode
                 simulation_steps_per_frame = 1  # Reset when toggling
@@ -95,10 +98,12 @@ while running:
             dt = clock.tick(FPS) / 1000.0
             simulation.update(dt)
 
-        menu.update_stats(simulation)
+        if show_menu:
+            menu.update_stats(simulation)
 
     simulation.draw(screen, camera)
-    menu.draw(screen)
+    if show_menu:
+        menu.draw(screen)
 
     pygame.display.flip()
 
