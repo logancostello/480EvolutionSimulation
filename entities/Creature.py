@@ -5,7 +5,7 @@ import random
 from entities.Brain import Brain
 from spacial.Point import Point
 
-REPRODUCTION_CHANCE = 0.05  # per frame
+REPRODUCTION_CHANCE = 0.005  # per frame
 
 class Creature:
     def __init__(self, id, pos, genome, parent=None, generation=1):
@@ -111,19 +111,16 @@ class Creature:
 
         # Get child creature
         child_pos = Point(self.pos.x, self.pos.y)
-        child = Creature(child_id, child_pos, self.genome, self.id, self.generation + 1)
+        child = Creature(child_id, child_pos, self.genome.clone(), self.id, self.generation + 1)
         child.speed = self.speed
         child.direction = self.direction
         child.brain = self.brain.clone()
 
         # Apply mutations
-        child.mutate()
+        self.brain.mutate()
+        self.genome.mutate()
 
         return child
-
-    def mutate(self):
-        """" Applies random mutations to creature """
-        self.brain.mutate()
 
     def draw(self, screen, camera):
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
