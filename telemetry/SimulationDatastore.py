@@ -22,10 +22,10 @@ class SimulationDatastore:
                 max_speed REAL,
                 max_turn_rate REAL,
                 radius REAL,
-                min_energy_to_reproduce REAL,
-                min_time_between_reproducing REAL,
+                energy_for_reproduction REAL,
+                time_between_reproduction REAL,
                 viewable_distance REAL,
-                viewable_angle REAL,
+                fov REAL,
                 num_brain_nodes INTEGER,
                 num_brain_connections INTEGER
             )
@@ -41,20 +41,20 @@ class SimulationDatastore:
 
     def add_new_creature(self, c, time):
         self.conn.execute("""
-            INSERT INTO creatures (id, parent, generation, birth_time, max_speed, max_turn_rate, radius, min_energy_to_reproduce, min_time_between_reproducing, viewable_distance, viewable_angle, num_brain_nodes, num_brain_connections)
-            VALUES (:id, :parent, :generation, :birth_time, :max_speed, :max_turn_rate, :radius, :min_energy_to_reproduce, :min_time_between_reproducing, :viewable_distance, :viewable_angle, :num_brain_nodes, :num_brain_connections)""",
+            INSERT INTO creatures (id, parent, generation, birth_time, max_speed, max_turn_rate, radius, energy_for_reproduction, time_between_reproduction, viewable_distance, fov, num_brain_nodes, num_brain_connections)
+            VALUES (:id, :parent, :generation, :birth_time, :max_speed, :max_turn_rate, :radius, :energy_for_reproduction, :time_between_reproduction, :viewable_distance, :fov, :num_brain_nodes, :num_brain_connections)""",
             {
                 "id": c.id,
                 "parent": c.parent,
                 "generation": c.generation,
                 "birth_time": time,
-                "max_speed": c.max_speed,
-                "max_turn_rate": c.max_turn_rate,
-                "radius": c.radius,
-                "min_energy_to_reproduce": c.min_energy_to_reproduce,
-                "min_time_between_reproducing": c.min_time_between_reproducing,
-                "viewable_distance": c.viewable_distance,
-                "viewable_angle": c.viewable_angle,
+                "max_speed": c.genome.max_speed,
+                "max_turn_rate": c.genome.max_turn_rate,
+                "radius": c.genome.radius,
+                "energy_for_reproduction": c.genome.energy_for_reproduction,
+                "time_between_reproduction": c.genome.time_between_reproduction,
+                "viewable_distance": c.genome.viewable_distance,
+                "fov": c.genome.fov,
                 "num_brain_nodes": len(c.brain.nodes),
                 "num_brain_connections": len(c.brain.connections.keys())
         })

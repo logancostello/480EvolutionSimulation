@@ -5,44 +5,24 @@ import random
 from entities.Brain import Brain
 from spacial.Point import Point
 
-MAX_SPEED = 100  # 100 pixels per second
-MAX_TURN_RATE = math.pi  # 180 degrees per second
-
-DEFAULT_DIRECTION = 0
-DEFAULT_RADIUS = 25
-DEFAULT_COLOR = (255, 255, 255)  # white
-DEFAULT_ENERGY = 30
-DEFAULT_MIN_TIME_BETWEEN_REPRODUCING = 20
-DEFAULT_MIN_ENERGY_TO_REPRODUCE = 15
-VIEWABLE_DISTANCE = 150  # number of pixels the creature can see in front of themselves
-VIEWABLE_ANGLE = math.pi / 2
-
-REPRODUCTION_CHANCE = 0.1  # per frame
-
+REPRODUCTION_CHANCE = 0.05  # per frame
 
 class Creature:
-    def __init__(self, id, pos, parent=None, generation=1):
+    def __init__(self, id, pos, genome, parent=None, generation=1):
         self.id = id
+        self.genome = genome
         self.parent = parent # the id of the parent creature
         self.generation = generation # number of generations this lineage has
         self.age = 0
         self.pos = pos
-        self.direction = DEFAULT_DIRECTION  # angle in radians
-        self.max_speed = MAX_SPEED
-        self.max_turn_rate = MAX_TURN_RATE
-        self.radius = DEFAULT_RADIUS  # pixels
-        self.color = DEFAULT_COLOR
-        self.energy = DEFAULT_ENERGY  # number of seconds it can survive
-        self.min_energy_to_reproduce = DEFAULT_MIN_ENERGY_TO_REPRODUCE
+        self.direction = 6.28 * random.random()
+        self.energy = genome.init_energy
         self.time_since_reproduced = 0
-        self.min_time_between_reproducing = DEFAULT_MIN_TIME_BETWEEN_REPRODUCING
         self.brain = Brain(n_inputs=3, n_outputs=2)
-        self.viewable_distance = VIEWABLE_DISTANCE
-        self.viewable_angle = VIEWABLE_ANGLE
 
         # Brain outputs
-        self.turn_rate = 0.5
-        self.speed = 50
+        self.turn_rate = 0
+        self.speed = 0
 
     def update(self, dt, food_list):
         """
@@ -58,8 +38,8 @@ class Creature:
             closest_food_distance
         ])
 
-        self.turn_rate = self.max_turn_rate * brain_outputs[0]  # [-max_turn_rate, max_turn_rate]
-        self.speed = ((brain_outputs[1] + 1) / 2) * self.max_speed  # [0, max_speed]
+        self.turn_rate = self.genome.max_turn_rate * brain_outputs[0]  # [-max_turn_rate, max_turn_rate]
+        self.speed = ((brain_outputs[1] + 1) / 2) * self.genome.max_speed  # [0, max_speed]
 
         if self.age > 2 or self.parent is None:
             # Rotate direction
@@ -90,7 +70,7 @@ class Creature:
     def find_food(self, nearby_food):
         """ Returns the distance and direction to the single closest food item, if one is in vision"""
         # defaults if none visible
-        dist_to_closest = self.viewable_distance
+        dist_to_closest = self.genome.viewable_distance
         dir_to_closest = 0
 
         # check if each food is in FOV and closest
@@ -98,12 +78,12 @@ class Creature:
             dist = self.distance_to_food(food_piece)
             dir = self.direction_to_food(food_piece)
 
-            if abs(dir) <= self.viewable_angle and dist < dist_to_closest:
+            if abs(dir) <= self.genome.fov and dist < dist_to_closest:
                 dist_to_closest = dist
                 dir_to_closest = dir
 
         # normalize
-        dist_to_closest /= self.viewable_distance
+        dist_to_closest /= self.genome.viewable_distance
 
         return dist_to_closest, dir_to_closest
 
@@ -111,11 +91,11 @@ class Creature:
         """ Returns a boolean indicating if the creature can spawn a child """
 
         # Check enough time has passed
-        if self.time_since_reproduced < self.min_time_between_reproducing:
+        if self.time_since_reproduced < self.genome.time_between_reproduction:
             return False
 
         # Check enough energy to reproduce
-        if self.energy < self.min_energy_to_reproduce:
+        if self.energy < self.genome.energy_for_reproduction:
             return False
 
         # All conditions met, random chance to reproduce
@@ -131,7 +111,7 @@ class Creature:
 
         # Get child creature
         child_pos = Point(self.pos.x, self.pos.y)
-        child = Creature(child_id, child_pos, self.id, self.generation + 1)
+        child = Creature(child_id, child_pos, self.genome, self.id, self.generation + 1)
         child.speed = self.speed
         child.direction = self.direction
         child.brain = self.brain.clone()
@@ -147,8 +127,9 @@ class Creature:
 
     def draw(self, screen, camera):
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
-        scaled_radius = self.radius * camera.zoom
-        pygame.draw.circle(screen, self.color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
+        scaled_radius = self.genome.radius * camera.zoom
+        color = (int(self.genome.color_r), int(self.genome.color_g), int(self.genome.color_b))
+        pygame.draw.circle(screen, color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
 
     def getEnergy(self):
         return self.energy

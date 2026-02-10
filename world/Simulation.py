@@ -3,6 +3,7 @@ import pygame
 
 from entities.Creature import Creature
 from entities.Food import Food
+from entities.Genome import Genome
 from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 
@@ -25,7 +26,8 @@ class Simulation:
         # randomly generate creatures throughout world
         for _ in range(NUM_INIT_CREATURE):
             pos = self.spawn_random_point()
-            creature = Creature(self.next_creature_id, pos)
+            default_genome = Genome.create_default()
+            creature = Creature(self.next_creature_id, pos, default_genome)
             self.creatures.append(creature)
             self.datastore.add_new_creature(creature, self.time)
             self.next_creature_id += 1
@@ -49,7 +51,7 @@ class Simulation:
         orig_num_food = len(self.food.get_all())
 
         for c in self.creatures:
-            nearby_food = self.food.get_nearby(c.pos, c.viewable_distance)
+            nearby_food = self.food.get_nearby(c.pos, c.genome.viewable_distance)
             c.update(dt, nearby_food)
 
         self.handle_eating()
@@ -78,9 +80,9 @@ class Simulation:
         # check for collisions between creatures and food
         eaten = set()
         for c in self.creatures:
-            for f in self.food.get_nearby(c.pos, c.radius + MAX_FOOD_RADIUS):
+            for f in self.food.get_nearby(c.pos, c.genome.radius + MAX_FOOD_RADIUS):
                 dist = (c.pos.x - f.pos.x) ** 2 + (c.pos.y - f.pos.y) ** 2
-                collision_distance = (c.radius + f.radius) ** 2
+                collision_distance = (c.genome.radius + f.radius) ** 2
 
                 # if colliding, the creature gets the food's energy
                 if dist < collision_distance:
