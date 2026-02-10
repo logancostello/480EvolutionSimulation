@@ -28,6 +28,12 @@ class Simulation:
             pos = self.spawn_random_point()
             default_genome = Genome.create_default()
             creature = Creature(self.next_creature_id, pos, default_genome)
+
+            # give random colors to make lineages visible
+            creature.genome.color_r = random.randint(Genome.gene_metadata["color_r"]["min"], Genome.gene_metadata["color_r"]["max"])
+            creature.genome.color_g = random.randint(Genome.gene_metadata["color_g"]["min"], Genome.gene_metadata["color_r"]["max"])
+            creature.genome.color_b = random.randint(Genome.gene_metadata["color_b"]["min"], Genome.gene_metadata["color_r"]["max"])
+
             self.creatures.append(creature)
             self.datastore.add_new_creature(creature, self.time)
             self.next_creature_id += 1

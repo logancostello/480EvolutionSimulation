@@ -25,8 +25,8 @@ class Genome:
         """ Class method. Adds gene to genome metadata """
         cls.gene_metadata[name] = {
             "default": default,
-            "min_value": min,
-            "max_value": max,
+            "min": min,
+            "max": max,
             "mutation_rate": mutation_rate,
             "mutation_strength": mutation_strength
         }
@@ -39,6 +39,6 @@ Genome.register_gene(name="energy_for_reproduction", default=15, min=1, max=60) 
 Genome.register_gene(name="viewable_distance", default=150, min=0, max=500) # pixels
 Genome.register_gene(name="fov", default=1.57, min=0, max=6.28) # radians
 Genome.register_gene(name="init_energy", default=30, min=1, max=100) # seconds of survival
-Genome.register_gene(name="color_r", default=255, min=0, max=255, mutation_rate=0) # red component of color
-Genome.register_gene(name="color_g", default=255, min=0, max=255, mutation_rate=0) # green component of color
-Genome.register_gene(name="color_b", default=255, min=0, max=255, mutation_rate=0) # blue component of color
+Genome.register_gene(name="color_r", default=255, min=75, max=255, mutation_rate=0.05, mutation_strength=0.1) # red component of color
+Genome.register_gene(name="color_g", default=255, min=0, max=80, mutation_rate=0.05, mutation_strength=0.1) # green component of color
+Genome.register_gene(name="color_b", default=255, min=75, max=255, mutation_rate=0.05, mutation_strength=0.1) # blue component of color
