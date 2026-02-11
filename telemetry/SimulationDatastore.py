@@ -55,8 +55,8 @@ class SimulationDatastore:
                 "time_between_reproduction": c.genome.time_between_reproduction,
                 "viewable_distance": c.genome.viewable_distance,
                 "fov": c.genome.fov,
-                "num_brain_nodes": len(c.brain.nodes),
-                "num_brain_connections": len(c.brain.connections.keys())
+                "num_brain_nodes": c.num_brain_nodes,
+                "num_brain_connections": c.num_brain_connections
         })
 
     def mark_creature_dead(self, creature_id, time):
