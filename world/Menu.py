@@ -60,6 +60,7 @@ class Menu:
 
     def draw(self, screen):
         # Draw menu background
+        self.menu_height = screen.get_height()
         pygame.draw.rect(screen, (110, 110, 130), (0, 0, self.menu_width, self.menu_height), width=5)
 
         self.display_stats(screen)
