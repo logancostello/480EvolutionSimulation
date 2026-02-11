@@ -208,3 +208,6 @@ __marimo__/
 
 # Additional
 .DS_Store
+output.prof
+data/
+analytics/
