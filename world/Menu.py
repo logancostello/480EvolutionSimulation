@@ -45,14 +45,18 @@ class Menu:
         
         # Only re-render if stats changed
         if stats_key != self._last_stats:
-            stats_text = f"Creatures: {num_creatures}\nFood: {num_food}"
-            self._stats_cache = self.font.render(stats_text, True, (255, 255, 255))
+            self._stats_lines = [
+                self.font.render(f"Creatures: {num_creatures}", True, (255, 255, 255)),
+                self.font.render(f"Food: {num_food}", True, (255, 255, 255)),
+            ]
             self._last_stats = stats_key
         
-        text_surface = self._stats_cache
-        rect = text_surface.get_rect()
-        pygame.draw.rect(text_surface, (255, 255, 255), rect, 1)
-        screen.blit(text_surface, (10, 10))
+        # text_surface = self._stats_cache
+        # rect = text_surface.get_rect()
+        # pygame.draw.rect(text_surface, (255, 255, 255), rect, 1)
+        x, y = 10, 10
+        for i, surf in enumerate(self._stats_lines):
+            screen.blit(surf, (x, y + i * self.font.get_linesize()))
 
     def draw(self, screen):
         # Draw menu background
@@ -74,6 +78,9 @@ class Menu:
 
         # Update or create buttons
         for i, creature in enumerate(self.creatures):
+            if cur_y + BUTTON_HEIGHT > self.menu_height:
+                break  # Stop if we exceed menu height
+
             if self.buttons[i] is None or self.buttons[i].creature != creature:
                 self.buttons[i] = CreatureButton(creature, pygame.Rect(10, cur_y, self.menu_width - 20, BUTTON_HEIGHT))
             else:
@@ -82,20 +89,24 @@ class Menu:
             cur_y += BUTTON_HEIGHT
         
         for b in self.buttons:
-            b.draw(screen, cursor, selected=False)
+            if b is not None:
+                b.draw(screen, cursor, selected=False)
 
 class CreatureButton:
     def __init__(self, creature, rect):
         self.creature = creature
         self.rect = rect
         self.font = get_menu_font()  # Reuse cached font
-        
+
+        self._id_surf = self.font.render("", True, (240, 240, 245))
+        self._energy_surf = self.font.render("", True, (240, 240, 245))
+
         # Cache for rendered text
         self._text_cache = {}
         self._last_energy = None
 
     def label(self):
-        return f"Creature: \nEnergy: {self.creature.getEnergy():.1f}\n"
+        return f"Creature:{self.creature.id} \nEnergy: {self.creature.getEnergy():.1f}\n"
     
     def draw(self, surf, mouse_pos, selected=False):
         hover = self.rect.collidepoint(mouse_pos)
@@ -106,16 +117,21 @@ class CreatureButton:
         pygame.draw.rect(surf, bg, self.rect, border_radius=10)
         pygame.draw.rect(surf, (110, 110, 130), self.rect, 2, border_radius=10)
 
-        # Cache rendered text based on energy value
-        energy = self.creature.getEnergy()
-        energy_rounded = round(energy, 1)  # Round to avoid cache misses from float precision
-        
+        energy_rounded = round(self.creature.getEnergy(), 1)
+
+        # (1) Re-render only if changed
         if energy_rounded != self._last_energy:
-            label_text = self.label()
-            self._text_cache = self.font.render(label_text, True, (240, 240, 245))
+            self._id_surf = self.font.render(f"Creature:{self.creature.id}", True, (240, 240, 245))
+            self._energy_surf = self.font.render(f"Energy: {energy_rounded:.1f}", True, (240, 240, 245))
             self._last_energy = energy_rounded
+
+        # (2) BUT blit every frame
+        y = self.rect.y + 12
+        surf.blit(self._id_surf, (self.rect.x + 10, y))
+        y += self.font.get_linesize()
+        surf.blit(self._energy_surf, (self.rect.x + 10, y))
+            
         
-        surf.blit(self._text_cache, (self.rect.x + 10, self.rect.y + 12))
 
     def hit(self, pos):
         return self.rect.collidepoint(pos)

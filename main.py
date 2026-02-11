@@ -25,7 +25,7 @@ datastore = SimulationDatastore()
 simulation = Simulation(SIMULATION_WIDTH, SIMULATION_HEIGHT, datastore)
 simulation.initialize()
 menu = Menu(MENU_WIDTH, MENU_HEIGHT)
-menu.draw(screen)
+menu.draw(screen)  # Initial draw to set up menu surface
 
 camera = Camera(SIMULATION_WIDTH, SIMULATION_HEIGHT)  
 
@@ -103,7 +103,7 @@ while running:
 
     simulation.draw(screen, camera)
     if show_menu:
-        menu.draw(screen)
+        menu.draw(screen) 
 
     pygame.display.flip()
 
