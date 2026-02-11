@@ -6,21 +6,27 @@ from entities.Food import Food
 from entities.Genome import Genome
 from spacial.Point import Point
 from spacial.QuadTree import QuadTree
+from entities.Forest import Forest
 
 NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
+NUM_TARGET_FOOD = NUM_INIT_FOOD
+NUM_INIT_FORESTS = 5
 
 MAX_FOOD_RADIUS = 10
+
 
 class Simulation:
     def __init__(self, world_width, world_height, datastore):
         self.simulation_width = world_width
         self.simulation_height = world_height
         self.datastore = datastore
-        self.time = 0 # in seconds
+        self.time = 0  # in seconds
         self.creatures = []
         self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
         self.next_creature_id = 1
+        self.forest = []
+        self.total_forest_weights = 2  # starting number is the likelihood of food appearing outside a forest
 
     def initialize(self):
         # randomly generate creatures throughout world
@@ -38,8 +44,26 @@ class Simulation:
             self.datastore.add_new_creature(creature, self.time)
             self.next_creature_id += 1
 
-        # randomly generate food throughout world
-        for _ in range(NUM_INIT_FOOD):
+        # randomly generate forests throughout the world
+        for forest in range(NUM_INIT_FORESTS):
+            pt = self.spawn_random_point()
+            wt = random.randint(1, 3)
+            r_x = random.randint(500, 1500)
+            r_y = random.randint(500, 1500)
+            self.forest.append(Forest(pt, wt, r_x, r_y))
+            self.total_forest_weights += wt
+
+        # randomly generate food within forests
+        for forest in self.forest:
+            food_count = round(NUM_INIT_FOOD * (forest.weight/self.total_forest_weights))
+
+            for food in range(food_count):
+                pos = self.spawn_point_in_forest(forest)
+                self.food.insert(Food(pos, MAX_FOOD_RADIUS))
+
+        # randomly generate additional food throughout world
+        leftover_food = NUM_INIT_FOOD - len(self.food.get_all())
+        for _ in range(leftover_food):
             pos = self.spawn_random_point()
             self.food.insert(Food(pos, MAX_FOOD_RADIUS))
 
@@ -49,6 +73,27 @@ class Simulation:
         x = self.simulation_width * random.random()
         y = self.simulation_height * random.random()
         return Point(x, y)
+
+    def spawn_point_in_forest(self, forest):
+        x = forest.position.x + random.randint(-forest.radius_x, forest.radius_x)
+        y = forest.position.y + random.randint(-forest.radius_y, forest.radius_y)
+
+        if 0 < x < self.simulation_width and 0 < y < self.simulation_height:  # if within world boundary
+
+            # normalised distance from forest center
+            nx = (x - forest.position.x) / forest.radius_x
+            ny = (y - forest.position.y) / forest.radius_y
+            norm = nx * nx + ny * ny
+
+            if norm > 1.0:  # if outside of ellipsis
+                return self.spawn_point_in_forest(forest)
+
+            if (norm ** 0.5) <= 0.75:  # accept all points in inner 75% of forest
+                return Point(x, y)
+            elif random.randint(0, 2) == 0:  # 1/3 as likely in outer 25% of forest
+                return Point(x, y)
+
+        return self.spawn_point_in_forest(forest)
 
     def update(self, dt):
         self.time += dt
@@ -68,6 +113,8 @@ class Simulation:
 
         if len(self.creatures) != orig_num_creatures or len(self.food.get_all()) != orig_num_food:
             self.datastore.update_real_time(self.time, len(self.creatures), len(self.food.get_all()))
+
+        self.handle_food_spawning()
 
     def draw(self, screen, camera):
         visible_area = camera.get_visible_area()
@@ -115,3 +162,30 @@ class Simulation:
         for creature in dead:
             self.datastore.mark_creature_dead(creature.id, self.time)
         self.creatures = [c for c in self.creatures if c.energy > 0]
+
+    def food_list(self):
+        return self.food
+
+    def handle_food_spawning(self):
+        food_alive = 0
+        for f in self.food.get_all():
+            if f.is_alive():
+                food_alive += 1
+
+        food_to_spawn = NUM_TARGET_FOOD - food_alive
+
+        for food in range(food_to_spawn):
+            r = random.random()
+
+            cumulative = 0
+
+            for forest in self.forest:
+                cumulative += forest.weight/self.total_forest_weights
+                if r < cumulative:
+                    pt = self.spawn_point_in_forest(forest)
+                    self.food.insert(Food(pt, MAX_FOOD_RADIUS))
+                    return
+
+            pt = self.spawn_random_point()
+            self.food.insert(Food(pt, MAX_FOOD_RADIUS))
+            return

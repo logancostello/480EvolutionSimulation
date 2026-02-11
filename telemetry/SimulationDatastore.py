@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 import os
 
+
 class SimulationDatastore:
     """ Place for simulation data to be stored """
 

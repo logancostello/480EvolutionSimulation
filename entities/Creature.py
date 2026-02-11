@@ -7,12 +7,13 @@ from spacial.Point import Point
 
 REPRODUCTION_CHANCE = 0.005  # per frame
 
+
 class Creature:
     def __init__(self, id, pos, genome, parent=None, generation=1):
         self.id = id
         self.genome = genome
-        self.parent = parent # the id of the parent creature
-        self.generation = generation # number of generations this lineage has
+        self.parent = parent  # the id of the parent creature
+        self.generation = generation  # number of generations this lineage has
         self.age = 0
         self.pos = pos
         self.direction = 6.28 * random.random()

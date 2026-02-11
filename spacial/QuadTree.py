@@ -78,7 +78,7 @@ class QuadTree:
             
         else:
             # if not divided, remove from contents
-            if entity in self.contents: # check incase of border edge case
+            if entity in self.contents:  # check in case of border edge case
                 self.contents.remove(entity)
                 return True
             return False

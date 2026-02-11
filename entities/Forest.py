@@ -2,9 +2,8 @@ import pygame
 
 
 class Forest:
-    def __init__(self, x, y, weight, radius_x, radius_y):
-        self.x = x
-        self.y = y
+    def __init__(self, position, weight, radius_x, radius_y):
+        self.position = position
         self.weight = weight
         self.radius_x = radius_x
         self.radius_y = radius_y
