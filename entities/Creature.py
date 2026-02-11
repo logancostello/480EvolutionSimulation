@@ -3,10 +3,18 @@ import math
 import random
 
 from entities.Brain import Brain
+from entities.Genome import Genome
 from spacial.Point import Point
 
 REPRODUCTION_CHANCE = 0.005  # per frame
 
+BASAL_METABOLIC_RATE_ENERGY_PENALTY = 0.3
+MOVEMENT_ENERGY_PENALTY = 0.6
+SENSORY_ENERGY_PENALTY = 0.2
+NUM_BRAIN_NODES_ENERGY_PENALTY = 0.04
+NUM_BRAIN_CONNECTION_ENERGY_PENALTY = 0.01
+
+DEFAULT_MAX_ENERGY = 60
 
 class Creature:
     def __init__(self, id, pos, genome, parent=None, generation=1):
@@ -24,6 +32,23 @@ class Creature:
         # Brain outputs
         self.turn_rate = 0
         self.speed = 0
+
+    @property
+    def mass(self):
+        return (self.genome.radius / Genome.gene_metadata["radius"]["default"]) ** 2
+
+    @property
+    def max_energy(self):
+        """ Max energy scales with creature mass """
+        return DEFAULT_MAX_ENERGY * self.mass
+    
+    @property
+    def num_brain_nodes(self):
+        return len(self.brain.nodes)
+    
+    @property
+    def num_brain_connections(self):
+        return len(self.brain.connections.keys())
 
     def update(self, dt, food_list):
         """
@@ -51,7 +76,7 @@ class Creature:
             self.pos.y += math.sin(self.direction) * self.speed * dt
 
         # Energy and time updates
-        self.energy -= dt
+        self.energy -= self.calculate_energy_loss() * dt
         self.time_since_reproduced += dt
         self.age += dt
 
@@ -122,6 +147,23 @@ class Creature:
         self.genome.mutate()
 
         return child
+    
+    def calculate_energy_loss(self):
+        """ 
+        Returns energy loss per second 
+        Default creature loses ~1 energy per second
+        """
+        mass = self.mass
+
+        basal = BASAL_METABOLIC_RATE_ENERGY_PENALTY * mass
+
+        movement = MOVEMENT_ENERGY_PENALTY * mass * (self.speed / self.genome.max_speed) ** 2
+
+        sensory = SENSORY_ENERGY_PENALTY * (self.genome.fov / Genome.gene_metadata["fov"]["default"]) * (self.genome.viewable_distance / Genome.gene_metadata["viewable_distance"]["default"])
+
+        neural = NUM_BRAIN_NODES_ENERGY_PENALTY * self.num_brain_nodes + NUM_BRAIN_CONNECTION_ENERGY_PENALTY * self.num_brain_connections
+
+        return basal + movement + sensory + neural
 
     def draw(self, screen, camera):
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))

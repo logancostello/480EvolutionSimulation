@@ -140,6 +140,7 @@ class Simulation:
                 # if colliding, the creature gets the food's energy
                 if dist < collision_distance:
                     c.energy += f.energy
+                    c.energy = min(c.max_energy, c.energy)
                     f.energy = 0 # set to zero incase another creature is also touching food
                     eaten.add(f)
 

@@ -58,7 +58,7 @@ Genome.register_gene(name="time_between_reproduction", default=20, min=20, max=1
 Genome.register_gene(name="energy_for_reproduction", default=15, min=15, max=60) # energy
 Genome.register_gene(name="viewable_distance", default=150, min=1, max=500) # pixels
 Genome.register_gene(name="fov", default=1.57, min=1, max=6.28) # radians
-Genome.register_gene(name="init_energy", default=30, min=1, max=100) # seconds of survival
+Genome.register_gene(name="init_energy", default=30, min=30, max=30) # seconds of survival
 Genome.register_gene(name="color_r", default=255, min=75, max=255, mutation_rate=0.05, mutation_strength=0.1) # red component of color
 Genome.register_gene(name="color_g", default=255, min=0, max=80, mutation_rate=0.05, mutation_strength=0.1) # green component of color
 Genome.register_gene(name="color_b", default=255, min=75, max=255, mutation_rate=0.05, mutation_strength=0.1) # blue component of color
