@@ -6,7 +6,7 @@ from entities.Brain import Brain
 from entities.Genome import Genome
 from spacial.Point import Point
 
-REPRODUCTION_CHANCE = 0.005  # per frame
+REPRODUCTION_CHANCE = 0.025  # per frame
 
 BASAL_METABOLIC_RATE_ENERGY_PENALTY = 0.3
 MOVEMENT_ENERGY_PENALTY = 0.6
@@ -151,8 +151,8 @@ class Creature:
         child.brain = self.brain.clone()
 
         # Apply mutations
-        self.brain.mutate()
-        self.genome.mutate()
+        child.brain.mutate()
+        child.genome.mutate()
 
         # Adjust energy
         energy_for_child = self.energy * self.genome.percent_energy_for_child
