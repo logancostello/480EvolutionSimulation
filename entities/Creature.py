@@ -3,9 +3,14 @@ import math
 import random
 
 from entities.Brain import Brain
+from entities.Genome import Genome
 from spacial.Point import Point
 
 REPRODUCTION_CHANCE = 0.005  # per frame
+
+BASAL_METABOLIC_RATE_ENERGY_PENALTY = 0.5
+MOVEMENT_ENERGY_PENALTY = 0.8
+SENSORY_ENERGY_PENALTY = 0.3
 
 class Creature:
     def __init__(self, id, pos, genome, parent=None, generation=1):
@@ -50,7 +55,7 @@ class Creature:
             self.pos.y += math.sin(self.direction) * self.speed * dt
 
         # Energy and time updates
-        self.energy -= dt
+        self.energy -= self.calculate_energy_loss() * dt
         self.time_since_reproduced += dt
         self.age += dt
 
@@ -121,6 +126,21 @@ class Creature:
         self.genome.mutate()
 
         return child
+    
+    def calculate_energy_loss(self):
+        """ 
+        Returns energy loss per second 
+        Default creature loses ~1 energy per second
+        """
+        mass = (self.genome.radius / Genome.gene_metadata["radius"]["default"]) ** 2
+
+        basal = BASAL_METABOLIC_RATE_ENERGY_PENALTY * mass
+
+        movement = MOVEMENT_ENERGY_PENALTY * mass * (self.speed / self.genome.max_speed) ** 2
+
+        sensory = SENSORY_ENERGY_PENALTY * (self.genome.fov / Genome.gene_metadata["fov"]["default"]) * (self.genome.viewable_distance / Genome.gene_metadata["viewable_distance"]["default"])
+
+        return basal + movement + sensory
 
     def draw(self, screen, camera):
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
