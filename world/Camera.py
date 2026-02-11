@@ -99,3 +99,9 @@ class Camera:
         scaled_height = entity_rect.height * self.zoom
         
         return pygame.Rect(screen_pos[0], screen_pos[1], scaled_width, scaled_height)
+    
+    def center_creature(self, creature):
+        """ Center the camera on a specific creature """
+        self.x = creature.pos.x
+        self.y = creature.pos.y
+        self.zoom = 1.25  # Optional: zoom in when centering on a creature

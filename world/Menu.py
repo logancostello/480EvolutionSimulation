@@ -77,8 +77,10 @@ class Menu:
         while len(self.buttons) > len(self.creatures):
             self.buttons.pop()
 
+        sorted_creatures = sorted(self.creatures, key=lambda c: c.energy, reverse=True)
+
         # Update or create buttons
-        for i, creature in enumerate(self.creatures):
+        for i, creature in enumerate(sorted_creatures):
             if cur_y + BUTTON_HEIGHT > self.menu_height:
                 break  # Stop if we exceed menu height
 
@@ -92,6 +94,12 @@ class Menu:
         for b in self.buttons:
             if b is not None:
                 b.draw(screen, cursor, selected=False)
+
+    def get_clicked_button(self, pos):
+        for b in self.buttons:
+            if b is not None and b.hit(pos):
+                return b
+        return None
 
 class CreatureButton:
     def __init__(self, creature, rect):
