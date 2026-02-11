@@ -16,7 +16,7 @@ DEFAULT_MIN_ENERGY_TO_REPRODUCE = 15
 
 REPRODUCTION_CHANCE = 0.1 # per frame
 
-class Creature:
+class Creature(pygame.sprite.Sprite):
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -33,6 +33,21 @@ class Creature:
         self.turn_rate = 0.5 
         self.speed = 50
 
+        # Adding Sprite Animation
+        self.sprites = []
+        self.sprites.append(pygame.image.load("Assets/Images/Moving_Frame_1.png"))
+        self.sprites.append(pygame.image.load("Assets/Images/Moving_frame_2.png"))
+
+        self.current_sprite = 0
+
+        self.image = self.sprites[self.current_sprite]
+        self.image_original = self.sprites[self.current_sprite]
+        
+
+        self.rect = self.image.get_rect(center = (x, y))
+
+        #self.rect.topleft = [x,y]
+
     def is_alive(self):
         return self.energy > 0
     
@@ -40,6 +55,11 @@ class Creature:
         """
         Make all updates to self each frame
         """
+        #if self.current_sprite == 0:
+            #self.current_sprite = 1
+        #else: 
+            #self.current_sprite = 0
+    
         if not self.is_alive(): return
 
         # Outputs between [-1, 1]
@@ -48,12 +68,18 @@ class Creature:
             self.energy,
             self.direction,
         ])
-
+       
         self.turn_rate = MAX_TURN_RATE * brain_outputs[0] # [-max_turn_rate, max_turn_rate]
         self.speed = ((brain_outputs[1] + 1) / 2) * MAX_SPEED # [0, max_speed]
 
         # Rotate direction
         self.direction += self.turn_rate * dt
+       
+
+        initial_center = self.image.get_rect(center = (self.x, self.y))
+        self.image = pygame.transform.rotate(self.image_original, self.direction)
+
+        
 
         # Move
         self.x += math.cos(self.direction) * self.speed * dt
@@ -103,5 +129,10 @@ class Creature:
             return
         
         screen_pos = camera.world_to_screen((self.x, self.y))
+    
         scaled_radius = self.radius * camera.zoom
+        #self.image = pygame.transform.scale(self.image_original, scaled_radius)
+        screen.blit(self.image, (int(screen_pos[0]), int(screen_pos[1]) ))
         pygame.draw.circle(screen, self.color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
+        
+     
