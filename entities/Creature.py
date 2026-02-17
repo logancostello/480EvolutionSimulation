@@ -146,6 +146,11 @@ class Creature:
         self.brain.mutate()
         self.genome.mutate()
 
+        # Adjust energy
+        energy_for_child = self.energy * self.genome.percent_energy_for_child
+        child.energy = energy_for_child
+        self.energy -= energy_for_child
+
         return child
     
     def calculate_energy_loss(self):
