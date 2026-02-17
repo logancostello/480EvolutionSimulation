@@ -8,7 +8,7 @@ from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from entities.Forest import Forest
 
-NUM_INIT_CREATURE = 50
+NUM_INIT_CREATURE = 75
 NUM_INIT_FOOD = 1000
 NUM_TARGET_FOOD = NUM_INIT_FOOD
 NUM_INIT_FORESTS = 5
