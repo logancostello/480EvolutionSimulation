@@ -14,6 +14,8 @@ SENSORY_ENERGY_PENALTY = 0.2
 NUM_BRAIN_NODES_ENERGY_PENALTY = 0.04
 NUM_BRAIN_CONNECTION_ENERGY_PENALTY = 0.01
 
+MIN_DESIRE_FOR_REPRODUCTION = 0 # [-1, 1]
+
 DEFAULT_MAX_ENERGY = 60
 
 class Creature:
@@ -27,11 +29,12 @@ class Creature:
         self.direction = 6.28 * random.random()
         self.energy = genome.init_energy
         self.time_since_reproduced = 0
-        self.brain = Brain(n_inputs=3, n_outputs=2)
+        self.brain = Brain(n_inputs=4, n_outputs=3)
 
         # Brain outputs
         self.turn_rate = 0
         self.speed = 0
+        self.desire_to_reproduce = 0
 
     @property
     def mass(self):
@@ -61,11 +64,13 @@ class Creature:
         brain_outputs = self.brain.think([
             1,  # constant input
             closest_food_direction,
-            closest_food_distance
+            closest_food_distance,
+            self.energy
         ])
 
         self.turn_rate = self.genome.max_turn_rate * brain_outputs[0]  # [-max_turn_rate, max_turn_rate]
         self.speed = ((brain_outputs[1] + 1) / 2) * self.genome.max_speed  # [0, max_speed]
+        self.desire_to_reproduce = brain_outputs[2] # [-1, 1]
 
         if self.age > 2 or self.parent is None:
             # Rotate direction
@@ -124,8 +129,8 @@ class Creature:
         if self.energy < self.genome.energy_for_reproduction:
             return False
 
-        # All conditions met, random chance to reproduce
-        if random.random() > REPRODUCTION_CHANCE:
+        # Check wants to reproduce
+        if self.desire_to_reproduce < MIN_DESIRE_FOR_REPRODUCTION:
             return False
 
         return True
