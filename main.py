@@ -53,7 +53,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            datastore.close()
+            break
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 paused = not paused
@@ -113,4 +113,5 @@ while running:
     pygame.display.flip()
 
 pygame.quit()
+datastore.close()
 sys.exit()
