@@ -2,14 +2,13 @@ import random
 import pygame
 
 from entities.Creature import Creature
-from entities.Food import Food
 from entities.Genome import Genome
 from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from world.FoodSpawner import FoodSpawner
 
 NUM_INIT_CREATURE = 300
-NUM_INIT_FOOD = 1500
+NUM_INIT_FOOD = 1000
 
 class Simulation:
     def __init__(self, world_width, world_height, datastore):
@@ -21,6 +20,7 @@ class Simulation:
         self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
         self.next_creature_id = 1
         self.food_spawner = FoodSpawner(self, NUM_INIT_FOOD)
+        self.energy_pool = 0 
 
     def initialize(self):
         # randomly generate creatures throughout world
@@ -92,14 +92,17 @@ class Simulation:
 
                 # if colliding, the creature gets the food's energy
                 if dist < collision_distance:
-                    c.energy += f.energy
-                    c.energy = min(c.max_energy, c.energy)
-                    f.energy = 0  # set to zero incase another creature is also touching food
+                    max_consumable_energy = c.max_energy - c.energy
+                    energy_consumed = min(f.energy, max_consumable_energy)
+
+                    c.energy += energy_consumed
+                    f.energy -= energy_consumed
                     eaten.add(f)
 
         # remove eaten food from memory
         for e in eaten:
-            self.food.remove(e)
+            if e.energy <= 0:
+                self.food.remove(e)
 
     def handle_reproduction(self):
         new_creatures = []
@@ -114,6 +117,7 @@ class Simulation:
     def handle_creature_death(self):
         dead = [c for c in self.creatures if c.energy <= 0]
         for creature in dead:
+            self.energy_pool += creature.lifetime_energy_spent
             self.datastore.mark_creature_dead(creature.id, self.time)
         self.creatures = [c for c in self.creatures if c.energy > 0]
 

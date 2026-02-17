@@ -1,5 +1,6 @@
 import random
 from entities.Food import Food
+from entities.Food import ENERGY_DENSITY
 from spacial.Point import Point
 from entities.Forest import Forest
 
@@ -71,17 +72,14 @@ class FoodSpawner:
             self.sim.food.insert(Food(pos, MAX_FOOD_RADIUS))
     
     def spawn_food(self):
-        """Spawns food to maintain target count. Call once per frame."""
-        food_alive = 0
-        for f in self.sim.food.get_all():
-            if f.is_alive():
-                food_alive += 1
-
-        food_to_spawn = self.target_food_count - food_alive
-
-        for _ in range(food_to_spawn):
+        """ Spawns food to maintain target count"""
+        food_energy = ENERGY_DENSITY * MAX_FOOD_RADIUS ** 2
+    
+        while self.sim.energy_pool >= food_energy:
             pos = self._choose_spawn_position()
             self.sim.food.insert(Food(pos, MAX_FOOD_RADIUS))
+            self.sim.energy_pool -= food_energy
+
     
     def _choose_spawn_position(self):
         """Choose spawn position weighted by forest density"""
