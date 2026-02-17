@@ -14,7 +14,7 @@ SENSORY_ENERGY_PENALTY = 0.2
 NUM_BRAIN_NODES_ENERGY_PENALTY = 0.04
 NUM_BRAIN_CONNECTION_ENERGY_PENALTY = 0.01
 
-MIN_DESIRE_FOR_REPRODUCTION = 0 # [-1, 1]
+MIN_DESIRE_FOR_REPRODUCTION = 0.01 # [-1, 1]
 
 DEFAULT_MAX_ENERGY = 60
 
@@ -28,6 +28,7 @@ class Creature:
         self.pos = pos
         self.direction = 6.28 * random.random()
         self.energy = genome.init_energy
+        self.lifetime_energy_spent = 0
         self.time_since_reproduced = 0
         self.brain = Brain(n_inputs=4, n_outputs=3)
 
@@ -81,7 +82,9 @@ class Creature:
             self.pos.y += math.sin(self.direction) * self.speed * dt
 
         # Energy and time updates
-        self.energy -= self.calculate_energy_loss() * dt
+        energy_cost = self.calculate_energy_loss() * dt
+        self.energy -= energy_cost
+        self.lifetime_energy_spent += energy_cost
         self.time_since_reproduced += dt
         self.age += dt
 
