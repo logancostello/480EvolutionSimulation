@@ -11,7 +11,7 @@ class FoodSpawner:
         self.sim = simulation
         self.target_food_count = target_food_count
         self.forests = []
-        self.total_forest_weights = 2  # starting number is the likelihood of food appearing outside a forest
+        self.total_forest_weights = 3  # starting number is the likelihood of food appearing outside a forest
     
     def initialize_forests(self):
         """Create forests in the world"""

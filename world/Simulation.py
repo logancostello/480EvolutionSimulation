@@ -8,7 +8,7 @@ from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from world.FoodSpawner import FoodSpawner
 
-NUM_INIT_CREATURE = 150
+NUM_INIT_CREATURE = 300
 NUM_INIT_FOOD = 1500
 
 class Simulation:
