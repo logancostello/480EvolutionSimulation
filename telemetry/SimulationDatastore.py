@@ -25,6 +25,7 @@ class SimulationDatastore:
                 radius REAL,
                 energy_for_reproduction REAL,
                 time_between_reproduction REAL,
+                percent_energy_for_child REAL,
                 viewable_distance REAL,
                 fov REAL,
                 num_brain_nodes INTEGER,
@@ -42,8 +43,8 @@ class SimulationDatastore:
 
     def add_new_creature(self, c, time):
         self.conn.execute("""
-            INSERT INTO creatures (id, parent, generation, birth_time, max_speed, max_turn_rate, radius, energy_for_reproduction, time_between_reproduction, viewable_distance, fov, num_brain_nodes, num_brain_connections)
-            VALUES (:id, :parent, :generation, :birth_time, :max_speed, :max_turn_rate, :radius, :energy_for_reproduction, :time_between_reproduction, :viewable_distance, :fov, :num_brain_nodes, :num_brain_connections)""",
+            INSERT INTO creatures (id, parent, generation, birth_time, max_speed, max_turn_rate, radius, energy_for_reproduction, time_between_reproduction, percent_energy_for_child, viewable_distance, fov, num_brain_nodes, num_brain_connections)
+            VALUES (:id, :parent, :generation, :birth_time, :max_speed, :max_turn_rate, :radius, :energy_for_reproduction, :time_between_reproduction, :percent_energy_for_child, :viewable_distance, :fov, :num_brain_nodes, :num_brain_connections)""",
             {
                 "id": c.id,
                 "parent": c.parent,
@@ -54,6 +55,7 @@ class SimulationDatastore:
                 "radius": c.genome.radius,
                 "energy_for_reproduction": c.genome.energy_for_reproduction,
                 "time_between_reproduction": c.genome.time_between_reproduction,
+                "percent_energy_for_child": c.genome.percent_energy_for_child,
                 "viewable_distance": c.genome.viewable_distance,
                 "fov": c.genome.fov,
                 "num_brain_nodes": c.num_brain_nodes,
