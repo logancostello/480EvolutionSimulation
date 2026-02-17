@@ -3,7 +3,7 @@ from entities.Food import Food
 from spacial.Point import Point
 from entities.Forest import Forest
 
-NUM_INIT_FORESTS = 5
+NUM_INIT_FORESTS = 10
 MAX_FOOD_RADIUS = 10
 
 class FoodSpawner:
@@ -15,12 +15,44 @@ class FoodSpawner:
     
     def initialize_forests(self):
         """Create forests in the world"""
+        # Scale forest size based on world dimensions
+        avg_world_size = (self.sim.simulation_width + self.sim.simulation_height) / 2
+        min_radius = int(avg_world_size * 0.10)  # 10% of average world size
+        max_radius = int(avg_world_size * 0.25)  # 25% of average world size
+        
+        max_attempts_per_forest = 50  # Try up to 50 times to find a good spot
+        
         for _ in range(NUM_INIT_FORESTS):
-            pt = self._spawn_random_point()
-            wt = random.randint(1, 3)
-            r_x = random.randint(500, 1500)
-            r_y = random.randint(500, 1500)
-            self.forests.append(Forest(pt, wt, r_x, r_y))
+            best_pos = None
+            best_distance = 0
+            
+            # Try multiple positions and pick the one farthest from existing forests
+            for attempt in range(max_attempts_per_forest):
+                candidate_pos = self._spawn_random_point()
+                
+                if len(self.forests) == 0:
+                    # First forest, just place it
+                    best_pos = candidate_pos
+                    break
+                
+                # Calculate minimum distance to any existing forest
+                min_dist_to_existing = float('inf')
+                for existing_forest in self.forests:
+                    dx = candidate_pos.x - existing_forest.position.x
+                    dy = candidate_pos.y - existing_forest.position.y
+                    dist = (dx * dx + dy * dy) ** 0.5
+                    min_dist_to_existing = min(min_dist_to_existing, dist)
+                
+                # Keep track of the position with maximum separation
+                if min_dist_to_existing > best_distance:
+                    best_distance = min_dist_to_existing
+                    best_pos = candidate_pos
+            
+            # Create forest at best position found
+            wt = random.uniform(0, 1)  
+            r_x = random.randint(min_radius, max_radius)
+            r_y = random.randint(min_radius, max_radius)
+            self.forests.append(Forest(best_pos, wt, r_x, r_y))
             self.total_forest_weights += wt
     
     def initialize_food(self):

@@ -8,8 +8,8 @@ from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from world.FoodSpawner import FoodSpawner
 
-NUM_INIT_CREATURE = 75
-NUM_INIT_FOOD = 1000
+NUM_INIT_CREATURE = 150
+NUM_INIT_FOOD = 1500
 
 class Simulation:
     def __init__(self, world_width, world_height, datastore):
