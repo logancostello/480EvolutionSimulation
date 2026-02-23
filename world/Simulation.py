@@ -10,6 +10,8 @@ from world.FoodSpawner import FoodSpawner
 NUM_INIT_CREATURE = 300
 NUM_INIT_FOOD = 1000
 
+CONTACT_DAMAGE = 10
+
 class Simulation:
     def __init__(self, world_width, world_height, datastore):
         self.simulation_width = world_width
@@ -18,6 +20,7 @@ class Simulation:
         self.time = 0  # in seconds
         self.creatures = []
         self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
+        self.creature_tree = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
         self.next_creature_id = 1
         self.food_spawner = FoodSpawner(self, NUM_INIT_FOOD)
         self.energy_pool = 0 
@@ -36,6 +39,7 @@ class Simulation:
 
             self.creatures.append(creature)
             self.datastore.add_new_creature(creature, self.time)
+            self.creature_tree.insert(creature)
             self.next_creature_id += 1
 
         # Initialize forests and food via food spawner
@@ -60,6 +64,8 @@ class Simulation:
             c.update(dt, nearby_food)
 
         self.handle_eating()
+
+        self.handle_contact()
 
         self.handle_creature_death()
 
@@ -104,6 +110,19 @@ class Simulation:
             if e.energy <= 0:
                 self.food.remove(e)
 
+    def handle_contact(self):
+        # check for collisions between creatures and transfer energy
+        for c in self.creatures:
+            for other in self.creatures:
+                if c.id != other.id:
+                    dist = (c.pos.x - other.pos.x) ** 2 + (c.pos.y - other.pos.y) ** 2
+                    collision_distance = (c.genome.radius + other.genome.radius) ** 2
+
+                    if dist < collision_distance:
+                        # simple energy transfer: each creature gives the other 10% of their energy
+                        c.energy -= CONTACT_DAMAGE - (CONTACT_DAMAGE * (c.genome.radius / other.genome.radius))
+                        other.energy -= CONTACT_DAMAGE - (CONTACT_DAMAGE * (other.genome.radius / c.genome.radius))
+
     def handle_reproduction(self):
         new_creatures = []
         for c in self.creatures:
@@ -112,6 +131,7 @@ class Simulation:
                 self.next_creature_id += 1
                 new_creatures.append(child)
                 self.datastore.add_new_creature(child, self.time)
+                self.creature_tree.insert(child)  # Add child to creature tree immediately
         self.creatures += new_creatures
 
     def handle_creature_death(self):
@@ -119,6 +139,7 @@ class Simulation:
         for creature in dead:
             self.energy_pool += creature.lifetime_energy_spent
             self.datastore.mark_creature_dead(creature.id, self.time)
+            self.creature_tree.remove(creature)  # Remove dead creature from creature tree
         self.creatures = [c for c in self.creatures if c.energy > 0]
 
     def food_list(self):
