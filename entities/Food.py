@@ -20,7 +20,6 @@ class Food:
 
   
 
-
     def draw(self, screen, camera):
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
         scaled_radius = self.radius * camera.zoom
