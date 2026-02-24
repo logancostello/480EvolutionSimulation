@@ -53,7 +53,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            datastore.close()
+            break
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 paused = not paused
@@ -63,7 +63,12 @@ while running:
                 uncapped_mode = not uncapped_mode
                 simulation_steps_per_frame = 1  # Reset when toggling
                 print(f"Uncapped mode: {'ON' if uncapped_mode else 'OFF'}")
-
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left click
+                clicked_button = menu.get_clicked_button(event.pos)
+                if clicked_button is not None:
+                    camera.center_creature(clicked_button.creature)
+                    print(f"Button clicked for Creature ID: {clicked_button.creature.id}")
         camera.handle_event(event)
     
     screen.fill(BLACK)
@@ -108,4 +113,5 @@ while running:
     pygame.display.flip()
 
 pygame.quit()
+datastore.close()
 sys.exit()
