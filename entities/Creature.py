@@ -37,6 +37,28 @@ class Creature:
         self.speed = 0
         self.desire_to_reproduce = 0
 
+        # Adding Sprite Animation
+        self.sprites = []
+        self.sprites.append(pygame.image.load("Assets/Images/Moving_Frame_1.png").convert_alpha())
+        self.sprites.append(pygame.image.load("Assets/Images/Moving_frame_2.png").convert_alpha())
+
+        # Index of current sprite
+        self.current_sprite = 0
+
+        # Image that is displayed to scene
+
+        self.image_original = self.sprites[self.current_sprite].subsurface(self.sprites[self.current_sprite].get_bounding_rect())
+        
+        #self.image_scaled = pygame.transform.scale(self.image_orignal, (radius * 2, radius * 2))
+
+        # Maintain original image for rotation
+        self.image_rot = self.image_original
+
+        self.image_rot_rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
+
+        # Get rectangle center
+        self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
+
     @property
     def mass(self):
         return (self.genome.radius / Genome.gene_metadata["radius"]["default"]) ** 2
@@ -77,9 +99,20 @@ class Creature:
             # Rotate direction
             self.direction += self.turn_rate * dt
 
+            #self.direction = self.direction % 360
+
+            self.image_rot = pygame.transform.rotate(self.image_original, -math.degrees(self.direction) + 90 + 180)
+            self.image_rot_rect = self.image_rot.get_rect(center = self.rect.center)
+
             # Move
             self.pos.x += math.cos(self.direction) * self.speed * dt
             self.pos.y += math.sin(self.direction) * self.speed * dt
+
+            self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
+
+            self.image_rot_rect = self.image_rot.get_rect(
+                center = (self.pos.x, self.pos.y)
+            )
 
         # Energy and time updates
         energy_cost = self.calculate_energy_loss() * dt
@@ -180,9 +213,17 @@ class Creature:
 
     def draw(self, screen, camera):
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
+       
         scaled_radius = self.genome.radius * camera.zoom
+
         color = (int(self.genome.color_r), int(self.genome.color_g), int(self.genome.color_b))
-        pygame.draw.circle(screen, color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
+
+        self.image_scaled = pygame.transform.scale_by(self.image_rot, camera.zoom)
+
+        scaled_rect = self.image_scaled.get_rect(center=screen_pos)
+        
+        screen.blit(self.image_scaled, scaled_rect)
+        #pygame.draw.circle(screen, color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
 
     def getEnergy(self):
         return self.energy
