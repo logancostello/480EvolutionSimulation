@@ -1,3 +1,4 @@
+import math
 import random
 import pygame
 
@@ -10,7 +11,8 @@ from world.FoodSpawner import FoodSpawner
 NUM_INIT_CREATURE = 300
 NUM_INIT_FOOD = 1000
 
-CONTACT_DAMAGE = 10
+CONTACT_DAMAGE = .10
+CREATURE_NUDGE = 5
 
 class Simulation:
     def __init__(self, world_width, world_height, datastore):
@@ -65,11 +67,15 @@ class Simulation:
 
         self.handle_eating()
 
+        # updates creature tree for new creature position, 
+        # processes contact damage ->  reproduciton -> Creature death
+        self.update_creature_tree()
         self.handle_contact()
 
-        self.handle_creature_death()
-
         self.handle_reproduction()
+
+        self.handle_creature_death()
+        
 
         if len(self.creatures) != orig_num_creatures or len(self.food.get_all()) != orig_num_food:
             self.datastore.update_real_time(self.time, len(self.creatures), len(self.food.get_all()))
@@ -112,16 +118,58 @@ class Simulation:
 
     def handle_contact(self):
         # check for collisions between creatures and transfer energy
+        max_r = max(c.genome.radius for c in self.creatures)
         for c in self.creatures:
-            for other in self.creatures:
-                if c.id != other.id:
-                    dist = (c.pos.x - other.pos.x) ** 2 + (c.pos.y - other.pos.y) ** 2
-                    collision_distance = (c.genome.radius + other.genome.radius) ** 2
+            query_r = c.genome.radius + max_r
+            candidates = self.creature_tree.get_nearby(c.pos, radius=query_r)
 
-                    if dist < collision_distance:
-                        # simple energy transfer: each creature gives the other 10% of their energy
-                        c.energy -= CONTACT_DAMAGE - (CONTACT_DAMAGE * (c.genome.radius / other.genome.radius))
-                        other.energy -= CONTACT_DAMAGE - (CONTACT_DAMAGE * (other.genome.radius / c.genome.radius))
+            for other in candidates:
+                if other is c:
+                    continue
+                if c.id > other.id:
+                    continue  # only handle each pair once
+
+                dx = other.pos.x - c.pos.x
+                dy = other.pos.y - c.pos.y
+                r = c.genome.radius + other.genome.radius
+
+                dist2 = dx*dx + dy*dy
+                if dist2 >= r*r:
+                    continue
+
+                dist = math.sqrt(dist2) if dist2 > 1e-12 else 1e-6
+                overlap = r - dist
+                nx, ny = dx/dist, dy/dist
+
+                mc, mo = c.mass, other.mass
+                total = mc + mo if (mc + mo) > 0 else 1.0
+
+                c_share = mo / total
+                o_share = mc / total
+
+                c.pos.x -= nx * overlap * c_share 
+                c.pos.y -= ny * overlap * c_share 
+                other.pos.x += nx * overlap * o_share
+                other.pos.y += ny * overlap * o_share
+
+                # simple nudge to prevent sticking - could be improved with actual collision response
+                c.direction += 0.2 * random.uniform(-1, 1)
+                other.direction += 0.2 * random.uniform(-1, 1)
+
+                # energy transfer/damage once
+                c.energy *= (1 - (CONTACT_DAMAGE * (c.genome.radius / other.genome.radius)))
+                other.energy *= (1 - (CONTACT_DAMAGE * (other.genome.radius / c.genome.radius)))
+
+                print(f"Contact between Creature {c.id} and Creature {other.id}")
+
+    def update_creature_tree(self):
+        self.creature_tree = QuadTree(
+            Point(0, 0),
+            Point(self.simulation_width, self.simulation_height),
+            10, 10
+        )
+        for c in self.creatures:
+            self.creature_tree.insert(c)
 
     def handle_reproduction(self):
         new_creatures = []
