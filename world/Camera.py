@@ -5,7 +5,8 @@ class Camera:
     def __init__(self, world_width, world_height):
         self.world_width = world_width
         self.world_height = world_height
-        
+        self.followed_creature = None
+
         # Camera position (center of view in world coordinates)
         self.x = world_width / 2
         self.y = world_height / 2
@@ -19,6 +20,13 @@ class Camera:
         self.is_panning = False
         self.pan_start_pos = (0, 0)
         self.pan_start_camera = (0, 0)
+
+    def update(self):
+        """ If following a creature, keep camera centered on it """
+        if self.followed_creature is not None:
+            self.x = self.followed_creature.pos.x
+            self.y = self.followed_creature.pos.y
+
     
     def handle_event(self, event):
         """ Handle camera-related events (zoom and pan) """
@@ -104,4 +112,5 @@ class Camera:
         """ Center the camera on a specific creature """
         self.x = creature.pos.x
         self.y = creature.pos.y
-        self.zoom = 1.25  # Optional: zoom in when centering on a creature
+        self.zoom = 1.25  
+        self.followed_creature = creature
