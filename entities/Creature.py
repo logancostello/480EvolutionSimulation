@@ -47,7 +47,7 @@ class Creature:
         self.current_sprite = 0
 
         # Original Image
-
+        #image = self.sprites[self.current_sprite]
         image = self.sprites[self.current_sprite].subsurface(self.sprites[self.current_sprite].get_bounding_rect())
         
         width, height = image.get_size()
@@ -58,34 +58,20 @@ class Creature:
 
         square_surface.blit(image, ((size- width) //2, (size - height) //2))
 
+        # Maintain original image
+
         self.image_original = square_surface
-       
-        # Change the Image Color
-
-        color = (int(self.genome.color_r), int(self.genome.color_g), int(self.genome.color_b))
-
-        pixel_array = pygame.PixelArray(self.image_original)
-
-        pixel_array.replace((217, 30, 217), color)
-
-        pixel_array.replace((217, 35, 150), color)
-
-        del pixel_array
-
-        # Scale the image
-
-        diameter = int(self.genome.radius * 2)
         
-        self.image_scaled =  pygame.transform.smoothscale(self.image_original, (diameter, diameter))
+        # Make a copy of the image for modification
 
-        # Maintain original image for rotation
+        self.image_copy = self.image_original.copy()
 
-        self.image_rotated = self.image_scaled
+        #self.image_rotated = self.image_scaled
 
         #self.image_rot_rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
 
         # Get rectangle center
-        self.rect = self.image_rotated.get_rect(center = (self.pos.x, self.pos.y))
+        self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
 
     @property
     def mass(self):
@@ -136,11 +122,11 @@ class Creature:
             self.pos.x += math.cos(self.direction) * self.speed * dt
             self.pos.y += math.sin(self.direction) * self.speed * dt
 
-            self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
+            # self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
 
-            self.image_rot_rect = self.image_rotated.get_rect(
-                center = (self.pos.x, self.pos.y)
-            )
+            # self.image_rot_rect = self.image_rotated.get_rect(
+            #     center = (self.pos.x, self.pos.y)
+            # )
 
         # Energy and time updates
         energy_cost = self.calculate_energy_loss() * dt
@@ -244,9 +230,27 @@ class Creature:
        
         scaled_radius = self.genome.radius * camera.zoom
 
+        # Change the Image Color
+
         color = (int(self.genome.color_r), int(self.genome.color_g), int(self.genome.color_b))
 
-        image_rotated_zoom = pygame.transform.rotozoom(self.image_scaled, -math.degrees(self.direction) + 90 + 180, camera.zoom)
+        pixel_array = pygame.PixelArray(self.image_copy)
+
+        pixel_array.replace((217, 30, 217), color)
+
+        pixel_array.replace((217, 35, 150), color)
+
+        del pixel_array
+
+        # Scale the image
+
+        diameter = int(self.genome.radius * 2)
+        
+        image_scaled =  pygame.transform.smoothscale(self.image_copy, (diameter, diameter))
+
+        # Rotate and Zoom the image
+
+        image_rotated_zoom = pygame.transform.rotozoom(image_scaled, -math.degrees(self.direction) + 90 + 180, camera.zoom)
 
         scaled_rect = image_rotated_zoom.get_rect(center=screen_pos)
         
