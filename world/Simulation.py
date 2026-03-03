@@ -123,3 +123,11 @@ class Simulation:
 
     def food_list(self):
         return self.food
+    
+    def get_creature(self, world_pos):
+        tolerance = 50
+        for c in self.creatures:
+            dist = (c.pos.x - world_pos[0]) ** 2 + (c.pos.y - world_pos[1]) ** 2
+            if dist <= c.genome.radius ** 2 + tolerance:
+                return c
+        return None
