@@ -31,7 +31,7 @@ class Creature:
         self.energy = genome.init_energy
         self.lifetime_energy_spent = 0
         self.time_since_reproduced = 0
-        self.brain = Brain(n_inputs=4, n_outputs=3)
+        self.brain = Brain.create_basic_brain(n_inputs=4, n_outputs=3, num_mutations=1)
 
         # Brain outputs
         self.turn_rate = 0
