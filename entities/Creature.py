@@ -20,6 +20,7 @@ DEFAULT_MAX_ENERGY = 60
 
 class Creature:
     def __init__(self, id, pos, genome, parent=None, generation=1):
+
         self.id = id
         self.genome = genome
         self.parent = parent  # the id of the parent creature
@@ -45,19 +46,46 @@ class Creature:
         # Index of current sprite
         self.current_sprite = 0
 
-        # Image that is displayed to scene
+        # Original Image
 
-        self.image_original = self.sprites[self.current_sprite].subsurface(self.sprites[self.current_sprite].get_bounding_rect())
+        image = self.sprites[self.current_sprite].subsurface(self.sprites[self.current_sprite].get_bounding_rect())
         
-        #self.image_scaled = pygame.transform.scale(self.image_orignal, (radius * 2, radius * 2))
+        width, height = image.get_size()
+
+        size = max(width, height)
+
+        square_surface = pygame.Surface((size, size), pygame.SRCALPHA)
+
+        square_surface.blit(image, ((size- width) //2, (size - height) //2))
+
+        self.image_original = square_surface
+       
+        # Change the Image Color
+
+        color = (int(self.genome.color_r), int(self.genome.color_g), int(self.genome.color_b))
+
+        pixel_array = pygame.PixelArray(self.image_original)
+
+        pixel_array.replace((217, 30, 217), color)
+
+        pixel_array.replace((217, 35, 150), color)
+
+        del pixel_array
+
+        # Scale the image
+
+        diameter = int(self.genome.radius * 2)
+        
+        self.image_scaled =  pygame.transform.smoothscale(self.image_original, (diameter, diameter))
 
         # Maintain original image for rotation
-        self.image_rot = self.image_original
 
-        self.image_rot_rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
+        self.image_rotated = self.image_scaled
+
+        #self.image_rot_rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
 
         # Get rectangle center
-        self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
+        self.rect = self.image_rotated.get_rect(center = (self.pos.x, self.pos.y))
 
     @property
     def mass(self):
@@ -101,8 +129,8 @@ class Creature:
 
             #self.direction = self.direction % 360
 
-            self.image_rot = pygame.transform.rotate(self.image_original, -math.degrees(self.direction) + 90 + 180)
-            self.image_rot_rect = self.image_rot.get_rect(center = self.rect.center)
+            #self.image_rotated = pygame.transform.rotate(self.image_scaled, -math.degrees(self.direction) + 90 + 180)
+            #self.image_rot_rect = self.image_rotated.get_rect(center = (self.pos.x, self.pos.y))
 
             # Move
             self.pos.x += math.cos(self.direction) * self.speed * dt
@@ -110,7 +138,7 @@ class Creature:
 
             self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
 
-            self.image_rot_rect = self.image_rot.get_rect(
+            self.image_rot_rect = self.image_rotated.get_rect(
                 center = (self.pos.x, self.pos.y)
             )
 
@@ -218,11 +246,12 @@ class Creature:
 
         color = (int(self.genome.color_r), int(self.genome.color_g), int(self.genome.color_b))
 
-        self.image_scaled = pygame.transform.scale_by(self.image_rot, camera.zoom)
+        image_rotated_zoom = pygame.transform.rotozoom(self.image_scaled, -math.degrees(self.direction) + 90 + 180, camera.zoom)
 
-        scaled_rect = self.image_scaled.get_rect(center=screen_pos)
+        scaled_rect = image_rotated_zoom.get_rect(center=screen_pos)
         
-        screen.blit(self.image_scaled, scaled_rect)
+        screen.blit(image_rotated_zoom, scaled_rect)
+
         #pygame.draw.circle(screen, color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
 
     def getEnergy(self):
