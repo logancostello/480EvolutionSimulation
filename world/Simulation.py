@@ -7,7 +7,8 @@ from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from world.FoodSpawner import FoodSpawner
 from spacial.SpacialHashGrid import SpatialHashGrid
-NUM_INIT_CREATURE = 300
+
+NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
 CELL_SIZE = 100  # determines how large each spacial hash grid cell is
 
@@ -128,3 +129,14 @@ class Simulation:
             self.datastore.mark_creature_dead(creature.id, self.time)
             self.creatures = [c for c in self.creatures if c.id not in dead_ids]  # rebuilding is faster then removing
         return bool(dead)  # returns true if creatures died
+
+    def food_list(self):
+        return self.food
+
+    def get_creature(self, world_pos):
+        tolerance = 50
+        for c in self.creatures:
+            dist = (c.pos.x - world_pos[0]) ** 2 + (c.pos.y - world_pos[1]) ** 2
+            if dist <= c.genome.radius ** 2 + tolerance:
+                return c
+        return None

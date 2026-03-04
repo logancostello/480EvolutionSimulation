@@ -248,3 +248,35 @@ class Brain:
                 return True
             
         return False
+
+    def create_basic_brain(n_inputs=4, n_outputs=3, num_mutations=5):
+        """
+        Creates a hand-crafted brain with two basic instincts:
+        1. Turn toward food when it's visible
+        2. Always want to reproduce
+        """
+        brain = Brain(n_inputs, n_outputs)
+        brain.connections.clear()
+        brain.nodes = list(range(n_inputs + n_outputs))
+        brain.topological_order = list(range(n_inputs + n_outputs))
+
+        INPUT_CONSTANT  = 0
+        INPUT_FOOD_DIR  = 1
+        INPUT_FOOD_DIST = 2
+        INPUT_ENERGY    = 3
+
+        OUTPUT_TURN     = n_inputs + 0 
+        OUTPUT_SPEED    = n_inputs + 1  
+        OUTPUT_REPRO    = n_inputs + 2  
+
+        # Turn toward food
+        brain.connections[(INPUT_FOOD_DIR, OUTPUT_TURN)] = 2.0
+
+        # Want to reproduce
+        brain.connections[(INPUT_CONSTANT, OUTPUT_REPRO)] = 2.0
+
+        # randomly mutate from base
+        for i in range(num_mutations):
+            brain.mutate()
+
+        return brain
