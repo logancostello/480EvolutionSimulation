@@ -19,6 +19,7 @@ REMOVE_EDGE_MUTATION_RATE = 0.33
 WEIGHT_MUTATION_MEAN = 0
 WEIGHT_MUTATION_SD = 0.25
 
+
 class Brain:
     def __init__(self, n_inputs, n_outputs):
         self.n_inputs = n_inputs
@@ -26,7 +27,7 @@ class Brain:
         self.nodes = list(range(n_inputs + n_outputs))
 
         self.topological_order = [i for i in range(n_inputs + n_outputs)]
-        self.connections = {} # (from, to) -> weight
+        self.connections = {}  # (from, to) -> weight
 
         self.initialize_connections()
 
@@ -44,7 +45,6 @@ class Brain:
         num_connections_to_create = int(num_possible_connections * INIT_CONNECTION_RATE)
         for _ in range(num_connections_to_create):
             self.add_random_connection()
-    
 
     def think(self, inputs):
         """ Calculate output nodes """
@@ -201,7 +201,6 @@ class Brain:
         for out_node in out_nodes:
             del self.connections[(node_to_remove, out_node)]
 
-
     def topological_sort(self):
         """ Orders nodes such that a node's parents come before it """
         num_incoming_edges = Counter()
@@ -249,3 +248,35 @@ class Brain:
                 return True
             
         return False
+
+    def create_basic_brain(n_inputs=4, n_outputs=3, num_mutations=5):
+        """
+        Creates a hand-crafted brain with two basic instincts:
+        1. Turn toward food when it's visible
+        2. Always want to reproduce
+        """
+        brain = Brain(n_inputs, n_outputs)
+        brain.connections.clear()
+        brain.nodes = list(range(n_inputs + n_outputs))
+        brain.topological_order = list(range(n_inputs + n_outputs))
+
+        INPUT_CONSTANT  = 0
+        INPUT_FOOD_DIR  = 1
+        INPUT_FOOD_DIST = 2
+        INPUT_ENERGY    = 3
+
+        OUTPUT_TURN     = n_inputs + 0 
+        OUTPUT_SPEED    = n_inputs + 1  
+        OUTPUT_REPRO    = n_inputs + 2  
+
+        # Turn toward food
+        brain.connections[(INPUT_FOOD_DIR, OUTPUT_TURN)] = 2.0
+
+        # Want to reproduce
+        brain.connections[(INPUT_CONSTANT, OUTPUT_REPRO)] = 2.0
+
+        # randomly mutate from base
+        for i in range(num_mutations):
+            brain.mutate()
+
+        return brain

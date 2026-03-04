@@ -6,7 +6,7 @@ from entities.Brain import Brain
 from entities.Genome import Genome
 from spacial.Point import Point
 
-REPRODUCTION_CHANCE = 0.005  # per frame
+REPRODUCTION_CHANCE = 0.025  # per frame
 
 BASAL_METABOLIC_RATE_ENERGY_PENALTY = 0.3
 MOVEMENT_ENERGY_PENALTY = 0.6
@@ -14,9 +14,10 @@ SENSORY_ENERGY_PENALTY = 0.2
 NUM_BRAIN_NODES_ENERGY_PENALTY = 0.04
 NUM_BRAIN_CONNECTION_ENERGY_PENALTY = 0.01
 
-MIN_DESIRE_FOR_REPRODUCTION = 0.01 # [-1, 1]
+MIN_DESIRE_FOR_REPRODUCTION = 0.01  # [-1, 1]
 
 DEFAULT_MAX_ENERGY = 60
+
 
 class Creature:
     def __init__(self, id, pos, genome, parent=None, generation=1):
@@ -30,12 +31,47 @@ class Creature:
         self.energy = genome.init_energy
         self.lifetime_energy_spent = 0
         self.time_since_reproduced = 0
-        self.brain = Brain(n_inputs=4, n_outputs=3)
+        self.brain = Brain.create_basic_brain(n_inputs=8, n_outputs=3, num_mutations=1)
 
         # Brain outputs
         self.turn_rate = 0
         self.speed = 0
         self.desire_to_reproduce = 0
+
+        # Adding Sprite Animation
+        self.sprites = []
+        self.sprites.append(pygame.image.load("Assets/Images/Moving_Frame_1.png").convert_alpha())
+        self.sprites.append(pygame.image.load("Assets/Images/Moving_frame_2.png").convert_alpha())
+
+        # Index of current sprite
+        self.current_sprite = 0
+
+        # Original Image
+        #image = self.sprites[self.current_sprite]
+        image = self.sprites[self.current_sprite].subsurface(self.sprites[self.current_sprite].get_bounding_rect())
+
+        width, height = image.get_size()
+
+        size = max(width, height)
+
+        square_surface = pygame.Surface((size, size), pygame.SRCALPHA)
+
+        square_surface.blit(image, ((size- width) //2, (size - height) //2))
+
+        # Maintain original image
+
+        self.image_original = square_surface
+
+        # Make a copy of the image for modification
+
+        self.image_copy = self.image_original.copy()
+
+        #self.image_rotated = self.image_scaled
+
+        #self.image_rot_rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
+
+        # Get rectangle center
+        self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
 
     @property
     def mass(self):
@@ -54,32 +90,46 @@ class Creature:
     def num_brain_connections(self):
         return len(self.brain.connections.keys())
 
-    def update(self, dt, food_list):
-        """
-        Make all updates to self each frame
-        """
+    def update(self, dt, nearby_food, nearby_creatures):
+        """Make all updates to self each frame"""
 
-        closest_food_distance, closest_food_direction = self.find_food(food_list)
+        closest_food_dis, closest_food_dir, count_food_in_vision = self.find_food(nearby_food)
+        closest_creature_dis, closest_creature_dir, count_creatures_in_vision = (self.find_creature(nearby_creatures))
 
         # Outputs between [-1, 1]
         brain_outputs = self.brain.think([
             1,  # constant input
-            closest_food_direction,
-            closest_food_distance,
+            closest_food_dir,
+            closest_food_dis,
+            count_food_in_vision,
+            closest_creature_dir,
+            closest_creature_dis,
+            count_creatures_in_vision,
             self.energy
         ])
 
         self.turn_rate = self.genome.max_turn_rate * brain_outputs[0]  # [-max_turn_rate, max_turn_rate]
         self.speed = ((brain_outputs[1] + 1) / 2) * self.genome.max_speed  # [0, max_speed]
-        self.desire_to_reproduce = brain_outputs[2] # [-1, 1]
+        self.desire_to_reproduce = brain_outputs[2]  # [-1, 1]
 
         if self.age > 2 or self.parent is None:
             # Rotate direction
             self.direction += self.turn_rate * dt
 
+            #self.direction = self.direction % 360
+
+            #self.image_rotated = pygame.transform.rotate(self.image_scaled, -math.degrees(self.direction) + 90 + 180)
+            #self.image_rot_rect = self.image_rotated.get_rect(center = (self.pos.x, self.pos.y))
+
             # Move
             self.pos.x += math.cos(self.direction) * self.speed * dt
             self.pos.y += math.sin(self.direction) * self.speed * dt
+
+            # self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
+
+            # self.image_rot_rect = self.image_rotated.get_rect(
+            #     center = (self.pos.x, self.pos.y)
+            # )
 
         # Energy and time updates
         energy_cost = self.calculate_energy_loss() * dt
@@ -89,7 +139,7 @@ class Creature:
         self.age += dt
 
     def distance_to_food(self, food):
-        """ Returns the distance of food object from creature """
+        """ Returns the distance of food object from creature. """
         return math.hypot((food.pos.x - self.pos.x), (food.pos.y - self.pos.y))
 
     def direction_to_food(self, food):
@@ -102,24 +152,75 @@ class Creature:
         return normalised_delta
 
     def find_food(self, nearby_food):
-        """ Returns the distance and direction to the single closest food item, if one is in vision"""
+        """ Returns the normalized distance(0 to 1) and direction to the single closest food item, if one is in vision,
+            and returns the total count of food items in vision."""
         # defaults if none visible
         dist_to_closest = self.genome.viewable_distance
         dir_to_closest = 0
+        count_in_vision = 0
 
         # check if each food is in FOV and closest
         for food_piece in nearby_food:
             dist = self.distance_to_food(food_piece)
             dir = self.direction_to_food(food_piece)
 
-            if abs(dir) <= self.genome.fov and dist < dist_to_closest:
-                dist_to_closest = dist
-                dir_to_closest = dir
+            if abs(dir) <= self.genome.fov:
+                count_in_vision += 1
+                if dist < dist_to_closest:
+                    dist_to_closest = dist
+                    dir_to_closest = dir
 
         # normalize
         dist_to_closest /= self.genome.viewable_distance
 
-        return dist_to_closest, dir_to_closest
+        return dist_to_closest, dir_to_closest, count_in_vision
+
+    def distance_to_creature(self, creature):
+        """ Returns the distance of food object from creature. """
+        return math.hypot((creature.pos.x - self.pos.x), (creature.pos.y - self.pos.y))
+
+    def direction_to_creature(self, diff_x, diff_y):
+        """ Return the relative direction of food object to creature """
+        angle_to_point = math.atan2(diff_y, diff_x)
+        delta = angle_to_point - self.direction
+        normalised_delta = (delta + math.pi) % (2 * math.pi) - math.pi
+        return normalised_delta
+
+    def find_creature(self, nearby_creatures):
+        """ Returns the normalized distance(0 to 1) and direction to the single closest creature, if one is in vision,
+            and returns the total count of creatures in vision."""
+        # defaults if none visible
+        dist_sq = self.genome.viewable_distance * self.genome.viewable_distance
+        dist_to_closest = dist_sq
+        dir_to_closest = 0
+        count_in_vision = 0
+
+        # check if each food is in FOV and closest
+        for creature_object in nearby_creatures:
+            # skip self
+            if creature_object.id == self.id:
+                continue
+
+            # early reject
+            diff_x = creature_object.pos.x - self.pos.x
+            diff_y = creature_object.pos.y - self.pos.y
+            dist = diff_x * diff_x + diff_y * diff_y
+            if dist > dist_sq:
+                continue
+
+            # exact reject
+            dir = self.direction_to_creature(diff_x, diff_y)
+
+            if abs(dir) <= self.genome.fov:
+                count_in_vision += 1
+                if dist < dist_to_closest:
+                    dist_to_closest = dist
+                    dir_to_closest = dir
+
+        # normalize
+        dist_to_closest /= self.genome.viewable_distance
+
+        return dist_to_closest, dir_to_closest, count_in_vision
 
     def can_reproduce(self):
         """ Returns a boolean indicating if the creature can spawn a child """
@@ -151,8 +252,8 @@ class Creature:
         child.brain = self.brain.clone()
 
         # Apply mutations
-        self.brain.mutate()
-        self.genome.mutate()
+        child.brain.mutate()
+        child.genome.mutate()
 
         # Adjust energy
         energy_for_child = self.energy * self.genome.percent_energy_for_child
@@ -180,9 +281,36 @@ class Creature:
 
     def draw(self, screen, camera):
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
+
         scaled_radius = self.genome.radius * camera.zoom
+
+        # Change the Image Color
+
         color = (int(self.genome.color_r), int(self.genome.color_g), int(self.genome.color_b))
-        pygame.draw.circle(screen, color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
+
+        pixel_array = pygame.PixelArray(self.image_copy)
+
+        pixel_array.replace((217, 30, 217), color)
+
+        pixel_array.replace((217, 35, 150), color)
+
+        del pixel_array
+
+        # Scale the image
+
+        diameter = int(self.genome.radius * 2)
+
+        image_scaled =  pygame.transform.smoothscale(self.image_copy, (diameter, diameter))
+
+        # Rotate and Zoom the image
+
+        image_rotated_zoom = pygame.transform.rotozoom(image_scaled, -math.degrees(self.direction) + 90 + 180, camera.zoom)
+
+        scaled_rect = image_rotated_zoom.get_rect(center=screen_pos)
+
+        screen.blit(image_rotated_zoom, scaled_rect)
+
+        #pygame.draw.circle(screen, color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
 
     def getEnergy(self):
         return self.energy
