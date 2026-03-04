@@ -2,7 +2,7 @@ import math
 import random
 import pygame
 
-from entities.Creature import Creature
+from entities.Creature import DEFAULT_MAX_ENERGY, Creature
 from entities.Genome import Genome
 from spacial.Point import Point
 from spacial.QuadTree import QuadTree
@@ -12,7 +12,8 @@ from spacial.SpacialHashGrid import SpatialHashGrid
 NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
 CELL_SIZE = 100  # determines how large each spacial hash grid cell is
-CONTACT_DAMAGE = .01
+CONTACT_DAMAGE = DEFAULT_MAX_ENERGY * 0.1  # base damage for creature contact, scaled by size ratio
+DAMAGE_SCALER = 1
 CREATURE_NUDGE = 5
 
 class Simulation:
@@ -69,8 +70,8 @@ class Simulation:
             nearby_creatures = self.creature_grid.query_rectangle(c.pos.x - r, c.pos.y - r, c.pos.x + r, c.pos.y + r)
             c.update(dt, nearby_food, nearby_creatures)
 
-            nearby_contact = self.creature_grid.query_rectangle(c.pos.x - c.genome.radius, c.pos.y - c.genome.radius, c.pos.x + c.genome.radius, c.pos.y + c.genome.radius)
-            self.handle_contact(c, nearby_contact)
+            # nearby_contact = self.creature_grid.query_rectangle(c.pos.x - c.genome.radius, c.pos.y - c.genome.radius, c.pos.x + c.genome.radius, c.pos.y + c.genome.radius)
+            self.handle_contact(c, nearby_creatures)
 
         self.handle_eating()
 
@@ -155,21 +156,25 @@ class Simulation:
                 # other.direction += 0.2 * random.uniform(-1, 1)
 
                 # energy transfer/damage once
-                c_damage = ((c.max_energy) * CONTACT_DAMAGE * (c.genome.radius / other.genome.radius))
-                o_damage = ( (other.max_energy) * CONTACT_DAMAGE * (other.genome.radius / c.genome.radius))
-                if other.genome.radius > c.genome.radius:
-                    c.energy = max(c.max_energy, c.energy - (c_damage))
-                    other.energy = max(other.max_energy, other.energy + (o_damage))
+                if c.genome.radius > other.genome.radius:
+                    damage = CONTACT_DAMAGE * (other.genome.radius / c.genome.radius)
+                    if c.energy + damage > c.max_energy:
+                        damage = c.max_energy - c.energy
+                    c.energy = min(c.max_energy, c.energy + (damage))
+                    other.energy = min(other.max_energy, other.energy - (damage))
                 else:
-                    c.energy = max(c.max_energy, c.energy + (c_damage))
-                    other.energy = max(other.max_energy, other.energy - (o_damage))
+                    damage = CONTACT_DAMAGE * (c.genome.radius / other.genome.radius)
+                    if other.energy + damage > other.max_energy:
+                        damage = other.max_energy - other.energy
+                    c.energy = min(c.max_energy, c.energy - (damage))
+                    other.energy = min(other.max_energy, other.energy + (damage))
 
                 if c.energy > c.max_energy:
                     c.energy = c.max_energy
                 if other.energy > other.max_energy:
                     other.energy = other.max_energy
 
-                print(f"Contact between Creature {c.id} and Creature {other.id}")
+                # print(f"Contact between Creature {c.id} and Creature {other.id}")
 
     def update_creature_tree(self):
         self.creature_tree = QuadTree(
