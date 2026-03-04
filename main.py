@@ -40,7 +40,7 @@ menu.draw(screen)  # Initial draw to set up menu surface
 
 camera = Camera(SIMULATION_WIDTH, SIMULATION_HEIGHT)
 
-# Clock for controlling framerate
+# Clock for controlling frame rate
 clock = pygame.time.Clock()
 TARGET_FPS = 60
 

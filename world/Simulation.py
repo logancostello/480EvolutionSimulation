@@ -6,9 +6,11 @@ from entities.Genome import Genome
 from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from world.FoodSpawner import FoodSpawner
-
+from spacial.SpacialHashGrid import SpatialHashGrid
 NUM_INIT_CREATURE = 300
 NUM_INIT_FOOD = 1000
+CELL_SIZE = 100  # determines how large each spacial hash grid cell is
+
 
 class Simulation:
     def __init__(self, world_width, world_height, datastore):
@@ -17,6 +19,7 @@ class Simulation:
         self.datastore = datastore
         self.time = 0  # in seconds
         self.creatures = []
+        self.creature_grid = SpatialHashGrid(CELL_SIZE)
         self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
         self.next_creature_id = 1
         self.food_spawner = FoodSpawner(self, NUM_INIT_FOOD)
@@ -51,21 +54,23 @@ class Simulation:
 
     def update(self, dt):
         self.time += dt
-
-        orig_num_creatures = len(self.creatures)
-        orig_num_food = len(self.food.get_all())
+        self.creature_grid.clear_frame()
 
         for c in self.creatures:
+            self.creature_grid.insert(c, c.pos.x, c.pos.y)
+        for c in self.creatures:
+            r = c.genome.viewable_distance
             nearby_food = self.food.get_nearby(c.pos, c.genome.viewable_distance)
-            c.update(dt, nearby_food)
+            nearby_creatures = self.creature_grid.query_rectangle(c.pos.x - r, c.pos.y - r, c.pos.x + r, c.pos.y + r)
+            c.update(dt, nearby_food, nearby_creatures)
 
         self.handle_eating()
 
-        self.handle_creature_death()
+        any_died = self.handle_creature_death()
 
-        self.handle_reproduction()
+        any_reproduced = self.handle_reproduction()
 
-        if len(self.creatures) != orig_num_creatures or len(self.food.get_all()) != orig_num_food:
+        if any_died or any_reproduced:
             self.datastore.update_real_time(self.time, len(self.creatures), len(self.food.get_all()))
 
         self.food_spawner.spawn_food()
@@ -112,14 +117,14 @@ class Simulation:
                 self.next_creature_id += 1
                 new_creatures.append(child)
                 self.datastore.add_new_creature(child, self.time)
-        self.creatures += new_creatures
+        self.creatures.extend(new_creatures)
+        return bool(new_creatures)  # returns true if creatures reproduced
 
     def handle_creature_death(self):
         dead = [c for c in self.creatures if c.energy <= 0]
+        dead_ids = set(d.id for d in dead)
         for creature in dead:
             self.energy_pool += creature.lifetime_energy_spent
             self.datastore.mark_creature_dead(creature.id, self.time)
-        self.creatures = [c for c in self.creatures if c.energy > 0]
-
-    def food_list(self):
-        return self.food
+            self.creatures = [c for c in self.creatures if c.id not in dead_ids]  # rebuilding is faster then removing
+        return bool(dead)  # returns true if creatures died

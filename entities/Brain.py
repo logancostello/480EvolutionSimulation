@@ -19,6 +19,7 @@ REMOVE_EDGE_MUTATION_RATE = 0.33
 WEIGHT_MUTATION_MEAN = 0
 WEIGHT_MUTATION_SD = 0.25
 
+
 class Brain:
     def __init__(self, n_inputs, n_outputs):
         self.n_inputs = n_inputs
@@ -26,7 +27,7 @@ class Brain:
         self.nodes = list(range(n_inputs + n_outputs))
 
         self.topological_order = [i for i in range(n_inputs + n_outputs)]
-        self.connections = {} # (from, to) -> weight
+        self.connections = {}  # (from, to) -> weight
 
         self.initialize_connections()
 
@@ -44,7 +45,6 @@ class Brain:
         num_connections_to_create = int(num_possible_connections * INIT_CONNECTION_RATE)
         for _ in range(num_connections_to_create):
             self.add_random_connection()
-    
 
     def think(self, inputs):
         """ Calculate output nodes """
@@ -200,7 +200,6 @@ class Brain:
             del self.connections[(in_node, node_to_remove)]
         for out_node in out_nodes:
             del self.connections[(node_to_remove, out_node)]
-
 
     def topological_sort(self):
         """ Orders nodes such that a node's parents come before it """
