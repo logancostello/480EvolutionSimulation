@@ -1,14 +1,20 @@
+import math
 import random
 import pygame
 
-from entities.Creature import Creature
+from entities.Creature import DEFAULT_MAX_ENERGY, Creature
 from entities.Genome import Genome
 from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from world.FoodSpawner import FoodSpawner
+from spacial.SpacialHashGrid import SpatialHashGrid
 
-NUM_INIT_CREATURE = 300
+NUM_INIT_CREATURE = 50
 NUM_INIT_FOOD = 1000
+CELL_SIZE = 100  # determines how large each spacial hash grid cell is
+CONTACT_DAMAGE = DEFAULT_MAX_ENERGY * 0.1  # base damage for creature contact, scaled by size ratio
+DAMAGE_SCALER = 1
+CREATURE_NUDGE = 5
 
 class Simulation:
     def __init__(self, world_width, world_height, datastore):
@@ -17,7 +23,9 @@ class Simulation:
         self.datastore = datastore
         self.time = 0  # in seconds
         self.creatures = []
+        self.creature_grid = SpatialHashGrid(CELL_SIZE)
         self.food = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
+        # self.creature_tree = QuadTree(Point(0, 0), Point(world_width, world_height), 10, 10)
         self.next_creature_id = 1
         self.food_spawner = FoodSpawner(self, NUM_INIT_FOOD)
         self.energy_pool = 0 
@@ -36,6 +44,7 @@ class Simulation:
 
             self.creatures.append(creature)
             self.datastore.add_new_creature(creature, self.time)
+            # self.creature_tree.insert(creature)
             self.next_creature_id += 1
 
         # Initialize forests and food via food spawner
@@ -51,21 +60,27 @@ class Simulation:
 
     def update(self, dt):
         self.time += dt
-
-        orig_num_creatures = len(self.creatures)
-        orig_num_food = len(self.food.get_all())
+        self.creature_grid.clear_frame()
 
         for c in self.creatures:
+            self.creature_grid.insert(c, c.pos.x, c.pos.y)
+        for c in self.creatures:
+            r = c.genome.viewable_distance
             nearby_food = self.food.get_nearby(c.pos, c.genome.viewable_distance)
-            c.update(dt, nearby_food)
+            nearby_creatures = self.creature_grid.query_rectangle(c.pos.x - r, c.pos.y - r, c.pos.x + r, c.pos.y + r)
+            c.update(dt, nearby_food, nearby_creatures)
+
+            # nearby_contact = self.creature_grid.query_rectangle(c.pos.x - c.genome.radius, c.pos.y - c.genome.radius, c.pos.x + c.genome.radius, c.pos.y + c.genome.radius)
+            self.handle_contact(c, nearby_creatures)
 
         self.handle_eating()
 
-        self.handle_creature_death()
+        any_died = self.handle_creature_death()
+        
 
-        self.handle_reproduction()
+        any_reproduced = self.handle_reproduction()
 
-        if len(self.creatures) != orig_num_creatures or len(self.food.get_all()) != orig_num_food:
+        if any_died or any_reproduced:
             self.datastore.update_real_time(self.time, len(self.creatures), len(self.food.get_all()))
 
         self.food_spawner.spawn_food()
@@ -104,6 +119,72 @@ class Simulation:
             if e.energy <= 0:
                 self.food.remove(e)
 
+    def handle_contact(self, c, nearby_creatures):
+        # check for collisions between creatures and transfer energy
+        # max_r = max(c.genome.radius for c in self.creatures)
+
+        for other in nearby_creatures:
+            if other is c:
+                continue
+            if c.id > other.id:
+                continue  # only handle each pair once
+
+            dx = other.pos.x - c.pos.x
+            dy = other.pos.y - c.pos.y
+            r = c.genome.radius + other.genome.radius
+
+            dist2 = dx*dx + dy*dy
+            if dist2 <= r*r:
+
+                dist = math.sqrt(dist2) if dist2 > 1e-12 else 1e-6
+                overlap = r - dist
+                nx, ny = dx/dist, dy/dist
+
+                mc, mo = c.mass, other.mass
+                total = mc + mo if (mc + mo) > 0 else 1.0
+
+                c_share = mo / total
+                o_share = mc / total
+
+                c.pos.x -= nx * overlap * c_share 
+                c.pos.y -= ny * overlap * c_share 
+                other.pos.x += nx * overlap * o_share
+                other.pos.y += ny * overlap * o_share
+
+                # simple nudge to prevent sticking - could be improved with actual collision response
+                # c.direction += 0.2 * random.uniform(-1, 1)
+                # other.direction += 0.2 * random.uniform(-1, 1)
+
+                # energy transfer/damage once
+                if c.genome.radius > other.genome.radius:
+                    damage = CONTACT_DAMAGE * (other.genome.radius / c.genome.radius)
+                    if c.energy + damage > c.max_energy:
+                        damage = c.max_energy - c.energy
+                    c.energy = min(c.max_energy, c.energy + (damage))
+                    other.energy = min(other.max_energy, other.energy - (damage))
+                else:
+                    damage = CONTACT_DAMAGE * (c.genome.radius / other.genome.radius)
+                    if other.energy + damage > other.max_energy:
+                        damage = other.max_energy - other.energy
+                    c.energy = min(c.max_energy, c.energy - (damage))
+                    other.energy = min(other.max_energy, other.energy + (damage))
+
+                if c.energy > c.max_energy:
+                    c.energy = c.max_energy
+                if other.energy > other.max_energy:
+                    other.energy = other.max_energy
+
+                # print(f"Contact between Creature {c.id} and Creature {other.id}")
+
+    def update_creature_tree(self):
+        self.creature_tree = QuadTree(
+            Point(0, 0),
+            Point(self.simulation_width, self.simulation_height),
+            10, 10
+        )
+        for c in self.creatures:
+            self.creature_tree.insert(c)
+
     def handle_reproduction(self):
         new_creatures = []
         for c in self.creatures:
@@ -112,14 +193,25 @@ class Simulation:
                 self.next_creature_id += 1
                 new_creatures.append(child)
                 self.datastore.add_new_creature(child, self.time)
-        self.creatures += new_creatures
+        self.creatures.extend(new_creatures)
+        return bool(new_creatures)  # returns true if creatures reproduced
 
     def handle_creature_death(self):
         dead = [c for c in self.creatures if c.energy <= 0]
+        dead_ids = set(d.id for d in dead)
         for creature in dead:
             self.energy_pool += creature.lifetime_energy_spent
             self.datastore.mark_creature_dead(creature.id, self.time)
-        self.creatures = [c for c in self.creatures if c.energy > 0]
+            self.creatures = [c for c in self.creatures if c.id not in dead_ids]  # rebuilding is faster then removing
+        return bool(dead)  # returns true if creatures died
 
     def food_list(self):
         return self.food
+
+    def get_creature(self, world_pos):
+        tolerance = 50
+        for c in self.creatures:
+            dist = (c.pos.x - world_pos[0]) ** 2 + (c.pos.y - world_pos[1]) ** 2
+            if dist <= c.genome.radius ** 2 + tolerance:
+                return c
+        return None

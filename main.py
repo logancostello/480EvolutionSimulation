@@ -40,7 +40,7 @@ menu.draw(screen)  # Initial draw to set up menu surface
 
 camera = Camera(SIMULATION_WIDTH, SIMULATION_HEIGHT)
 
-# Clock for controlling framerate
+# Clock for controlling frame rate
 clock = pygame.time.Clock()
 TARGET_FPS = 60
 
@@ -83,7 +83,15 @@ while running:
                 clicked_button = menu.get_clicked_button(event.pos)
                 if clicked_button is not None:
                     camera.center_creature(clicked_button.creature)
-                    print(f"Button clicked for Creature ID: {clicked_button.creature.id}")
+                    continue
+
+                world_pos = camera.screen_to_world(event.pos)
+                clicked_creature = simulation.get_creature(world_pos)
+                if clicked_creature:
+                    camera.center_creature(clicked_creature)
+                    continue
+                else:
+                    camera.followed_creature = None
         camera.handle_event(event)
 
     screen.fill(BLACK)
@@ -125,6 +133,7 @@ while running:
         if show_menu:
             menu.update_stats(simulation)
 
+    camera.update()
     simulation.draw(screen, camera)
     if show_menu:
         menu.draw(screen)
