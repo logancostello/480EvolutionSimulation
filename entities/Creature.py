@@ -20,7 +20,7 @@ DEFAULT_MAX_ENERGY = 60
 
 class Creature:
     def __init__(self, id, pos, genome, parent=None, generation=1):
-
+        self.update_count = 0
         self.id = id
         self.genome = genome
         self.parent = parent  # the id of the parent creature
@@ -94,6 +94,8 @@ class Creature:
         """
         Make all updates to self each frame
         """
+
+        self.change_sprite_frame()
 
         closest_food_distance, closest_food_direction = self.find_food(food_list)
 
@@ -224,6 +226,40 @@ class Creature:
         neural = NUM_BRAIN_NODES_ENERGY_PENALTY * self.num_brain_nodes + NUM_BRAIN_CONNECTION_ENERGY_PENALTY * self.num_brain_connections
 
         return basal + movement + sensory + neural
+    
+    def change_sprite_frame(self):
+        """
+        Changes the sprite frame 
+        """
+
+        if self.update_count == 7:
+
+            self.update_count = 0
+
+            if self.current_sprite == 0:
+                self.current_sprite = 1
+
+            else:
+                self.current_sprite = 0
+
+            # Original Image
+
+            image = self.sprites[self.current_sprite].subsurface(self.sprites[self.current_sprite].get_bounding_rect())
+            width, height = image.get_size()
+            size = max(width, height)
+            square_surface = pygame.Surface((size, size), pygame.SRCALPHA)
+            square_surface.blit(image, ((size- width) //2, (size - height) //2))
+
+            # Maintain original image
+
+            self.image_original = square_surface
+        
+            # Make a copy of the image for modification
+
+            self.image_copy = self.image_original.copy()
+
+        self.update_count = self.update_count + 1
+
 
     def draw(self, screen, camera):
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
