@@ -8,13 +8,9 @@ from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from world.FoodSpawner import FoodSpawner
 from spacial.SpacialHashGrid import SpatialHashGrid
+from config import NUM_INIT_CREATURE, NUM_INIT_FOOD, DAMAGE_SCALAR
 
-NUM_INIT_CREATURE = 50
-NUM_INIT_FOOD = 1000
 CELL_SIZE = 100  # determines how large each spacial hash grid cell is
-CONTACT_DAMAGE = DEFAULT_MAX_ENERGY * 0.1  # base damage for creature contact, scaled by size ratio
-DAMAGE_SCALER = 1
-CREATURE_NUDGE = 5
 
 class Simulation:
     def __init__(self, world_width, world_height, datastore):
@@ -151,19 +147,15 @@ class Simulation:
                 other.pos.x += nx * overlap * o_share
                 other.pos.y += ny * overlap * o_share
 
-                # simple nudge to prevent sticking - could be improved with actual collision response
-                # c.direction += 0.2 * random.uniform(-1, 1)
-                # other.direction += 0.2 * random.uniform(-1, 1)
-
                 # energy transfer/damage once
                 if c.genome.radius > other.genome.radius:
-                    damage = CONTACT_DAMAGE * (other.genome.radius / c.genome.radius)
+                    damage = DAMAGE_SCALAR * DEFAULT_MAX_ENERGY * (other.genome.radius / c.genome.radius)
                     if c.energy + damage > c.max_energy:
                         damage = c.max_energy - c.energy
                     c.energy = min(c.max_energy, c.energy + (damage))
                     other.energy = min(other.max_energy, other.energy - (damage))
                 else:
-                    damage = CONTACT_DAMAGE * (c.genome.radius / other.genome.radius)
+                    damage = DAMAGE_SCALAR * DEFAULT_MAX_ENERGY * (c.genome.radius / other.genome.radius)
                     if other.energy + damage > other.max_energy:
                         damage = other.max_energy - other.energy
                     c.energy = min(c.max_energy, c.energy - (damage))
@@ -173,8 +165,6 @@ class Simulation:
                     c.energy = c.max_energy
                 if other.energy > other.max_energy:
                     other.energy = other.max_energy
-
-                # print(f"Contact between Creature {c.id} and Creature {other.id}")
 
     def update_creature_tree(self):
         self.creature_tree = QuadTree(

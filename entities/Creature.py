@@ -6,18 +6,7 @@ from entities.Brain import Brain
 from entities.Genome import Genome
 from spacial.Point import Point
 
-REPRODUCTION_CHANCE = 0.025  # per frame
-
-BASAL_METABOLIC_RATE_ENERGY_PENALTY = 0.3
-MOVEMENT_ENERGY_PENALTY = 0.6
-SENSORY_ENERGY_PENALTY = 0.2
-NUM_BRAIN_NODES_ENERGY_PENALTY = 0.04
-NUM_BRAIN_CONNECTION_ENERGY_PENALTY = 0.01
-
-MIN_DESIRE_FOR_REPRODUCTION = 0.01  # [-1, 1]
-
-DEFAULT_MAX_ENERGY = 60
-
+from config import DEFAULT_MAX_ENERGY, BASAL_METABOLIC_RATE_ENERGY_PENALTY, MOVEMENT_ENERGY_PENALTY, SENSORY_ENERGY_PENALTY, NUM_BRAIN_CONNECTION_ENERGY_PENALTY, NUM_BRAIN_NODES_ENERGY_PENALTY
 
 class Creature:
     def __init__(self, id, pos, genome, parent=None, generation=1):
@@ -234,7 +223,7 @@ class Creature:
             return False
 
         # Check wants to reproduce
-        if self.desire_to_reproduce < MIN_DESIRE_FOR_REPRODUCTION:
+        if self.desire_to_reproduce < 0.01:
             return False
 
         return True

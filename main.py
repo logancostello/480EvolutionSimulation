@@ -5,12 +5,10 @@ from world.Simulation import Simulation
 from world.Menu import Menu
 from world.Camera import Camera
 from telemetry.SimulationDatastore import SimulationDatastore
+from config import SIMULATION_HEIGHT, SIMULATION_WIDTH
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
-
-SIMULATION_WIDTH = 12000
-SIMULATION_HEIGHT = 8000
 
 MENU_WIDTH = 200
 MENU_HEIGHT = SCREEN_HEIGHT

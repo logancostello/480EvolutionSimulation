@@ -1,7 +1,6 @@
 import random
+from config import DEFAULT_MUTATION_RATE, DEFAULT_MUTATION_STRENGTH
 
-DEFAULT_MUTATION_RATE = 0.2 # chance of mutation
-DEFAULT_MUTATION_STRENGTH = 0.1 # max % change due to mutation
 
 class Genome:
 
