@@ -11,7 +11,7 @@ NUM_INIT_FOOD = 500
 # ---------- Food ----------
 ENERGY_DENSITY = 0.20
 FOOD_RADIUS = 10
-NUM_INIT_FORESTS = 10
+NUM_INIT_FORESTS = 0
 WORLD_SPAWN_WEIGHT = 3  # relative weight for open-world spawning
 FOREST_SPAWN_WEIGHT_MIN = 3 # relative min weight for forest spawn
 FOREST_SPAWN_WEIGHT_MAX = 5.5  # relative max weight for forest spawn
@@ -32,4 +32,4 @@ NUM_BRAIN_NODES_ENERGY_PENALTY = 0.04
 NUM_BRAIN_CONNECTION_ENERGY_PENALTY = 0.01
 
 # ---------- Collisions ----------
-DAMAGE_SCALAR = 0.0
+DAMAGE_SCALAR = 0.1
