@@ -72,10 +72,8 @@ class Creature:
     def update(self, dt, nearby_food, nearby_creatures):
         """Make all updates to self each frame"""
 
-        self.change_sprite_frame()
-
         closest_food_dis, closest_food_dir, count_food_in_vision = self.find_food(nearby_food)
-        closest_creature_dis, closest_creature_dir, count_creatures_in_vision = (self.find_creature(nearby_creatures))
+        closest_creature_dis, closest_creature_dir, count_creatures_in_vision = self.find_creature(nearby_creatures)
 
         # Outputs between [-1, 1]
         brain_outputs = self.brain.think([
@@ -97,20 +95,9 @@ class Creature:
             # Rotate direction
             self.direction += self.turn_rate * dt
 
-            #self.direction = self.direction % 360
-
-            #self.image_rotated = pygame.transform.rotate(self.image_scaled, -math.degrees(self.direction) + 90 + 180)
-            #self.image_rot_rect = self.image_rotated.get_rect(center = (self.pos.x, self.pos.y))
-
             # Move
             self.pos.x += math.cos(self.direction) * self.speed * dt
             self.pos.y += math.sin(self.direction) * self.speed * dt
-
-            # self.rect = self.image_original.get_rect(center = (self.pos.x, self.pos.y))
-
-            # self.image_rot_rect = self.image_rotated.get_rect(
-            #     center = (self.pos.x, self.pos.y)
-            # )
 
         # Energy and time updates
         energy_cost = self.calculate_energy_loss() * dt
@@ -295,6 +282,9 @@ class Creature:
 
 
     def draw(self, screen, camera):
+
+        self.change_sprite_frame()
+
         screen_pos = camera.world_to_screen((self.pos.x, self.pos.y))
 
         scaled_radius = self.genome.radius * camera.zoom
@@ -324,8 +314,6 @@ class Creature:
         scaled_rect = image_rotated_zoom.get_rect(center=screen_pos)
 
         screen.blit(image_rotated_zoom, scaled_rect)
-
-        #pygame.draw.circle(screen, color, (int(screen_pos[0]), int(screen_pos[1])), int(scaled_radius))
 
     def getEnergy(self):
         return self.energy
