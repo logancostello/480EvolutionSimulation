@@ -13,7 +13,7 @@ class Camera:
         
         # Zoom level (1.0 = normal, >1.0 = zoomed in, <1.0 = zoomed out)
         self.zoom = 0.25
-        self.min_zoom = 0.1
+        self.min_zoom = 0.05
         self.max_zoom = 10.0
         
         # Panning

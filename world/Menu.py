@@ -1,9 +1,4 @@
-import math
-import random
 import pygame
-
-from entities.Creature import Creature
-from entities.Food import Food
 
 SYS_FONT = None
 BUTTON_HEIGHT = 60

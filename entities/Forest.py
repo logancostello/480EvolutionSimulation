@@ -1,6 +1,3 @@
-import pygame
-
-
 class Forest:
     def __init__(self, position, weight, radius_x, radius_y):
         self.position = position
