@@ -33,7 +33,7 @@ class Creature:
         self.energy = genome.init_energy
         self.lifetime_energy_spent = 0
         self.time_since_reproduced = 0
-        self.brain = Brain.create_basic_brain(n_inputs=8, n_outputs=3, num_mutations=1)
+        self.brain = Brain.create_basic_brain(n_inputs=13, n_outputs=3, num_mutations=1)
 
         self.turn_rate = 0
         self.speed = 0
@@ -72,20 +72,16 @@ class Creature:
     def update(self, dt, nearby_food, nearby_creatures):
         """Make all updates to self each frame"""
 
-        closest_food_dis, closest_food_dir, count_food_in_vision = self.find_food(nearby_food)
-        closest_creature_dis, closest_creature_dir, count_creatures_in_vision = self.find_creature(nearby_creatures)
+        food_inputs = self.find_food(nearby_food)
+        creature_inputs = self.find_creature(nearby_creatures)
 
         # Outputs between [-1, 1]
-        brain_outputs = self.brain.think([
-            1,  # constant input
-            closest_food_dir,
-            closest_food_dis,
-            count_food_in_vision,
-            closest_creature_dir,
-            closest_creature_dis,
-            count_creatures_in_vision,
-            self.energy
-        ])
+        brain_outputs = self.brain.think(
+            [1] +
+            food_inputs +
+            creature_inputs +
+            [self.energy]
+        )
 
         self.turn_rate = self.genome.max_turn_rate * brain_outputs[0]  # [-max_turn_rate, max_turn_rate]
         self.speed = ((brain_outputs[1] + 1) / 2) * self.genome.max_speed  # [0, max_speed]
@@ -141,7 +137,7 @@ class Creature:
         # normalize
         dist_to_closest /= self.genome.viewable_distance
 
-        return dist_to_closest, dir_to_closest, count_in_vision
+        return [dist_to_closest, dir_to_closest, count_in_vision]
 
     def distance_to_creature(self, creature):
         """ Returns the distance of food object from creature. """
@@ -155,40 +151,61 @@ class Creature:
         return normalised_delta
 
     def find_creature(self, nearby_creatures):
-        """ Returns the normalized distance(0 to 1) and direction to the single closest creature, if one is in vision,
-            and returns the total count of creatures in vision."""
-        # defaults if none visible
         dist_sq = self.genome.viewable_distance * self.genome.viewable_distance
         dist_to_closest = dist_sq
         dir_to_closest = 0
         count_in_vision = 0
+        closest_radius = 0
 
-        # check if each food is in FOV and closest
+        sum_x = 0
+        sum_y = 0
+        avg_speed = 0
+        avg_radius = 0
+
         for creature_object in nearby_creatures:
-            # skip self
             if creature_object.id == self.id:
                 continue
 
-            # early reject
             diff_x = creature_object.pos.x - self.pos.x
             diff_y = creature_object.pos.y - self.pos.y
             dist = diff_x * diff_x + diff_y * diff_y
             if dist > dist_sq:
                 continue
 
-            # exact reject
             dir = self.direction_to_creature(diff_x, diff_y)
 
             if abs(dir) <= self.genome.fov:
                 count_in_vision += 1
+                avg_speed += creature_object.speed
+                avg_radius += creature_object.genome.radius
+
+                sum_x += creature_object.pos.x
+                sum_y += creature_object.pos.y
+
                 if dist < dist_to_closest:
                     dist_to_closest = dist
                     dir_to_closest = dir
+                    closest_radius = creature_object.genome.radius
 
-        # normalize
-        dist_to_closest /= self.genome.viewable_distance
+        # normalize dist as 0-1 using squared distances throughout
+        dist_to_closest /= dist_sq
 
-        return dist_to_closest, dir_to_closest, count_in_vision
+        if count_in_vision > 0:
+            avg_speed /= count_in_vision
+            avg_radius /= count_in_vision
+
+            centroid_x = sum_x / count_in_vision - self.pos.x
+            centroid_y = sum_y / count_in_vision - self.pos.y
+            centroid_dir = self.direction_to_creature(centroid_x, centroid_y)
+            centroid_dist = (centroid_x * centroid_x + centroid_y * centroid_y) / dist_sq
+        else:
+            centroid_dir = 0
+            centroid_dist = 1
+            avg_speed = 0
+            avg_radius = 0
+            closest_radius = 0
+
+        return [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_radius]
 
     def can_reproduce(self):
         """ Returns a boolean indicating if the creature can spawn a child """
