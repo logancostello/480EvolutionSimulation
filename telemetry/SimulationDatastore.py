@@ -39,6 +39,15 @@ class SimulationDatastore:
             )
         """)
 
+        cursor.execute("""
+            CREATE TABLE collisions (
+                time REAL,
+                bigger_creature INTEGER,
+                smaller_creature INTEGER,
+                damage REAL          
+            )
+        """)
+
     def add_new_creature(self, c, time):
         self.conn.execute("""
             INSERT INTO creatures (id, parent, generation, birth_time, max_speed, max_turn_rate, radius, energy_for_reproduction, time_between_reproduction, percent_energy_for_child, viewable_distance, fov, num_brain_nodes, num_brain_connections)
@@ -73,6 +82,12 @@ class SimulationDatastore:
         )
         self._autosave(time)
 
+    def update_collisions(self, time, bigger_creature_id, smaller_creature_id, damage):
+        self.conn.execute(
+            "INSERT INTO collisions VALUES (?, ?, ?, ?)",
+            (time, bigger_creature_id, smaller_creature_id, damage)
+        )
+
     def _autosave(self, time):
         if time - self._last_save_time >= AUTOSAVE_INTERVAL:
             self.save()
@@ -82,6 +97,7 @@ class SimulationDatastore:
         os.makedirs("data", exist_ok=True)
         pd.read_sql("SELECT * FROM creatures", self.conn).to_csv("data/creatures.csv")
         pd.read_sql("SELECT * FROM real_time_stats", self.conn).to_csv("data/real_time_stats.csv")
+        pd.read_sql("SELECT * FROM collisions", self.conn).to_csv("data/collisions.csv")
 
     def close(self):
         self.save()
