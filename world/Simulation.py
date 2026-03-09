@@ -154,12 +154,14 @@ class Simulation:
                         damage = c.max_energy - c.energy
                     c.energy = min(c.max_energy, c.energy + (damage))
                     other.energy = min(other.max_energy, other.energy - (damage))
-                else:
+                    self.datastore.update_collisions(self.time, c.id, other.id, damage)
+                elif c.genome.radius < other.genome.radius:
                     damage = DAMAGE_SCALAR * DEFAULT_MAX_ENERGY * (c.genome.radius / other.genome.radius)
                     if other.energy + damage > other.max_energy:
                         damage = other.max_energy - other.energy
                     c.energy = min(c.max_energy, c.energy - (damage))
                     other.energy = min(other.max_energy, other.energy + (damage))
+                    self.datastore.update_collisions(self.time, other.id, c.id, damage)
 
                 if c.energy > c.max_energy:
                     c.energy = c.max_energy
