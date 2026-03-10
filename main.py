@@ -130,6 +130,7 @@ while running:
 
         if show_menu:
             menu.update_stats(simulation)
+            menu.show_creature_stats(screen, camera.get_center_creature())
 
     camera.update()
     simulation.draw(screen, camera)

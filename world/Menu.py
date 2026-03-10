@@ -53,6 +53,46 @@ class Menu:
         for i, surf in enumerate(self._stats_lines):
             screen.blit(surf, (x, y + i * self.font.get_linesize()))
 
+    def show_creature_stats(self, screen, creature):
+        # For simplicity, just print to console for now
+        if creature is not None:
+            pygame.draw.rect(screen, (110, 110, 130), (self.menu_width, 0, self.menu_width, self.menu_width), width=5)
+            
+            stats_key = (creature.id, creature.energy, creature.generation)
+
+            # Only re-render if stats changed
+            if stats_key != self._last_stats:
+                if creature.energy < 0:
+                    self._stats_lines = [
+                        self.font.render(f"Creature ID: {creature.id}", True, (255, 255, 255)),
+                        self.font.render(f"Creature Died", True, (255, 255, 255)),
+                        self.font.render(f"Creature Generation: {creature.generation}", True, (255, 255, 255)),
+                    ]
+                else:
+                    self._stats_lines = [
+                        self.font.render(f"Creature ID: {creature.id}", True, (255, 255, 255)),
+                        self.font.render(f"Creature Energy: {creature.energy:.2f}", True, (255, 255, 255)),
+                        self.font.render(f"Creature Generation: {creature.generation}", True, (255, 255, 255)),
+                    ]
+                self._last_stats = stats_key
+            
+            if creature.energy < 0:
+                self._stats_lines = [
+                    self.font.render(f"Creature ID: {creature.id}", True, (255, 255, 255)),
+                    self.font.render(f"Creature Died", True, (255, 255, 255)),
+                    self.font.render(f"Creature Generation: {creature.generation}", True, (255, 255, 255)),
+                ]
+            
+            # text_surface = self._stats_cache
+            # rect = text_surface.get_rect()
+            # pygame.draw.rect(text_surface, (255, 255, 255), rect, 1)
+            x, y = self.menu_width + 10, 10
+            for i, surf in enumerate(self._stats_lines):
+                screen.blit(surf, (x, y + i * self.font.get_linesize()))
+
+
+
+
     def draw(self, screen):
         # Draw menu background
         self.menu_height = screen.get_height()

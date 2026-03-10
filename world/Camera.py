@@ -108,6 +108,10 @@ class Camera:
         
         return pygame.Rect(screen_pos[0], screen_pos[1], scaled_width, scaled_height)
     
+    def get_center_creature(self):
+        """ Get the currently followed creature, if any """
+        return self.followed_creature
+
     def center_creature(self, creature):
         """ Center the camera on a specific creature """
         self.x = creature.pos.x
