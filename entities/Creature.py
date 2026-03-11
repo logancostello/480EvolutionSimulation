@@ -6,7 +6,9 @@ from entities.Brain import Brain
 from entities.Genome import Genome
 from spacial.Point import Point
 
-from config import DEFAULT_MAX_ENERGY, BASAL_METABOLIC_RATE_ENERGY_PENALTY, MOVEMENT_ENERGY_PENALTY, SENSORY_ENERGY_PENALTY, NUM_BRAIN_CONNECTION_ENERGY_PENALTY, NUM_BRAIN_NODES_ENERGY_PENALTY
+from config import NUM_INPUTS, NUM_OUTPUTS, DEFAULT_MAX_ENERGY, BASAL_METABOLIC_RATE_ENERGY_PENALTY, MOVEMENT_ENERGY_PENALTY, SENSORY_ENERGY_PENALTY, NUM_BRAIN_CONNECTION_ENERGY_PENALTY, NUM_BRAIN_NODES_ENERGY_PENALTY
+
+
 
 class Creature:
     _sprites = None
@@ -33,7 +35,7 @@ class Creature:
         self.energy = genome.init_energy
         self.lifetime_energy_spent = 0
         self.time_since_reproduced = 0
-        self.brain = Brain.create_basic_brain(n_inputs=13, n_outputs=3, num_mutations=1)
+        self.brain = Brain.create_basic_brain(n_inputs=NUM_INPUTS, n_outputs=NUM_OUTPUTS, num_mutations=1)
 
         self.turn_rate = 0
         self.speed = 0
@@ -205,6 +207,9 @@ class Creature:
             avg_radius = 0
             closest_radius = 0
 
+
+        # [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_radius]
+        # [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, closest_radius]
         return [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_radius]
 
     def can_reproduce(self):
