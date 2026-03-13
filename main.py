@@ -71,6 +71,8 @@ while running:
                 paused = not paused
             if event.key == pygame.K_m:
                 show_menu = not show_menu
+            if event.key == pygame.K_c:
+                simulation.stop_at_hour = not simulation.stop_at_hour
             if event.key == pygame.K_a:
                 uncapped_mode = not uncapped_mode
                 steps_per_frame = 1

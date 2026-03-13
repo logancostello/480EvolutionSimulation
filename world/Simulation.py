@@ -25,6 +25,7 @@ class Simulation:
         self.next_creature_id = 1
         self.food_spawner = FoodSpawner(self, NUM_INIT_FOOD)
         self.energy_pool = 0 
+        self.stop_at_hour = True
 
     def initialize(self):
         # randomly generate creatures throughout world
@@ -55,6 +56,11 @@ class Simulation:
         return Point(x, y)
 
     def update(self, dt):
+
+        # stop updating after an hour
+        if self.stop_at_hour and self.time > 60 * 60:
+            return
+
         self.time += dt
         self.creature_grid.clear_frame()
 
