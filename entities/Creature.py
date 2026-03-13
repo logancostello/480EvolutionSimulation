@@ -208,8 +208,8 @@ class Creature:
             closest_radius = 0
 
 
-        # [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_radius]
-        # [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, closest_radius]
+        #  LIMITIED: [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist]
+        #  NOT LIMITED: [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_radius]
         return [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_radius]
 
     def can_reproduce(self):
