@@ -1,4 +1,5 @@
 import pygame
+from config import SEED, TITLE
 
 SYS_FONT = None
 BUTTON_HEIGHT = 60
@@ -41,6 +42,7 @@ class Menu:
         # Only re-render if stats changed
         if stats_key != self._last_stats:
             self._stats_lines = [
+                self.font.render(f"{TITLE} {SEED}", True, (255, 255, 255)),
                 self.font.render(f"Creatures: {num_creatures}", True, (255, 255, 255)),
                 self.font.render(f"Food: {num_food}", True, (255, 255, 255)),
             ]
