@@ -1,14 +1,20 @@
+import random
 import sqlite3
 import pandas as pd
 import os
+from config import SEED, TITLE
 
 AUTOSAVE_INTERVAL = 15 * 60  # save every 15 simulation minutes
+
 
 class SimulationDatastore:
     def __init__(self):
         self.conn = sqlite3.connect(":memory:")
         self.create_tables()
         self._last_save_time = 0
+        self.directory = random.randint(1, 100)
+        print("Directory:" + str(self.directory))
+        print(TITLE)
 
     def create_tables(self):
         cursor = self.conn.cursor()
@@ -95,9 +101,9 @@ class SimulationDatastore:
 
     def save(self):
         os.makedirs("data", exist_ok=True)
-        pd.read_sql("SELECT * FROM creatures", self.conn).to_csv("data/creatures.csv")
-        pd.read_sql("SELECT * FROM real_time_stats", self.conn).to_csv("data/real_time_stats.csv")
-        pd.read_sql("SELECT * FROM collisions", self.conn).to_csv("data/collisions.csv")
+        pd.read_sql("SELECT * FROM creatures", self.conn).to_csv("data/creatures" + TITLE + str(SEED) + ".csv")
+        pd.read_sql("SELECT * FROM real_time_stats", self.conn).to_csv("data/real_time_stats" + TITLE + str(SEED) + ".csv")
+        pd.read_sql("SELECT * FROM collisions", self.conn).to_csv("data/collisions" + TITLE + str(SEED) + ".csv")
 
     def close(self):
         self.save()

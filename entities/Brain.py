@@ -69,7 +69,6 @@ class Brain:
         outputs = []
         for node_idx in range(self.n_inputs, self.n_inputs + self.n_outputs):
             outputs.append(node_values[node_idx])
-
         return outputs
     
     def mutate(self):

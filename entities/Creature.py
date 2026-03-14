@@ -6,8 +6,7 @@ from entities.Brain import Brain
 from entities.Genome import Genome
 from spacial.Point import Point
 
-from config import NUM_INPUTS, NUM_OUTPUTS, DEFAULT_MAX_ENERGY, BASAL_METABOLIC_RATE_ENERGY_PENALTY, MOVEMENT_ENERGY_PENALTY, SENSORY_ENERGY_PENALTY, NUM_BRAIN_CONNECTION_ENERGY_PENALTY, NUM_BRAIN_NODES_ENERGY_PENALTY
-
+from config import IS_LIMITED, NUM_INPUTS, NUM_OUTPUTS, DEFAULT_MAX_ENERGY, BASAL_METABOLIC_RATE_ENERGY_PENALTY, MOVEMENT_ENERGY_PENALTY, SENSORY_ENERGY_PENALTY, NUM_BRAIN_CONNECTION_ENERGY_PENALTY, NUM_BRAIN_NODES_ENERGY_PENALTY
 
 
 class Creature:
@@ -124,6 +123,9 @@ class Creature:
         dist_to_closest = self.genome.viewable_distance
         dir_to_closest = 0
         count_in_vision = 0
+        total_energy = 0
+        energy_of_closest = 0
+        avg_energy = 0
 
         # check if each food is in FOV and closest
         for food_piece in nearby_food:
@@ -131,15 +133,24 @@ class Creature:
             dir = self.direction_to_food(food_piece)
 
             if abs(dir) <= self.genome.fov:
+                energy = food_piece.energy
                 count_in_vision += 1
+                total_energy += energy
                 if dist < dist_to_closest:
                     dist_to_closest = dist
                     dir_to_closest = dir
+                    energy_of_closest = energy
+
+        if count_in_vision > 0:
+            avg_energy = total_energy / count_in_vision
 
         # normalize
         dist_to_closest /= self.genome.viewable_distance
 
-        return [dist_to_closest, dir_to_closest, count_in_vision]
+        if IS_LIMITED:
+            return [dist_to_closest, dir_to_closest, count_in_vision]
+        if not IS_LIMITED:
+            return [dist_to_closest, dir_to_closest, count_in_vision, energy_of_closest, avg_energy]
 
     def distance_to_creature(self, creature):
         """ Returns the distance of food object from creature. """
@@ -188,6 +199,7 @@ class Creature:
                     dist_to_closest = dist
                     dir_to_closest = dir
                     closest_radius = creature_object.genome.radius
+                    closest_speed = creature_object.speed
 
         # normalize dist as 0-1 using squared distances throughout
         dist_to_closest /= dist_sq
@@ -206,11 +218,12 @@ class Creature:
             avg_speed = 0
             avg_radius = 0
             closest_radius = 0
+            closest_speed = 0
 
-
-        #  LIMITIED: [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist]
-        #  NOT LIMITED: [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_radius]
-        return [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_radius]
+        if IS_LIMITED:
+            return [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist]
+        if not IS_LIMITED:
+            return [dist_to_closest, dir_to_closest, count_in_vision, centroid_dir, centroid_dist, avg_speed, avg_radius, closest_speed, closest_radius]
 
     def can_reproduce(self):
         """ Returns a boolean indicating if the creature can spawn a child """

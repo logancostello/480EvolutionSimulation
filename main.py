@@ -5,7 +5,7 @@ from world.Simulation import Simulation
 from world.Menu import Menu
 from world.Camera import Camera
 from telemetry.SimulationDatastore import SimulationDatastore
-from config import SIMULATION_HEIGHT, SIMULATION_WIDTH
+from config import SEED, SIMULATION_HEIGHT, SIMULATION_WIDTH
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
@@ -20,7 +20,7 @@ FIXED_DT = 1.0 / 60.0  # Simulation always ticks at 60fps equivalent
 if len(sys.argv) == 2:
     seed = int(sys.argv[1])
 else:
-    seed = random.randint(0, 2**32 - 1)
+    seed = SEED  # random.randint(0, 2**32 - 1)
 
 print(f"Simulating with seed = {seed}")
 random.seed(seed)
