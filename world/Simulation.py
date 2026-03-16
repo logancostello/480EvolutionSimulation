@@ -8,7 +8,7 @@ from spacial.Point import Point
 from spacial.QuadTree import QuadTree
 from world.FoodSpawner import FoodSpawner
 from spacial.SpacialHashGrid import SpatialHashGrid
-from config import NUM_INIT_CREATURE, NUM_INIT_FOOD, DAMAGE_SCALAR
+from config import EQUAL_RADIUS_DAMAGE_MULTIPLIER, NUM_INIT_CREATURE, NUM_INIT_FOOD, DAMAGE_SCALAR
 
 CELL_SIZE = 100  # determines how large each spacial hash grid cell is
 
@@ -168,6 +168,11 @@ class Simulation:
                     c.energy = min(c.max_energy, c.energy - (damage))
                     other.energy = min(other.max_energy, other.energy + (damage))
                     self.datastore.update_collisions(self.time, other.id, c.id, damage)
+                elif c.genome.radius == other.genome.radius:
+                    damage = DAMAGE_SCALAR * DEFAULT_MAX_ENERGY * EQUAL_RADIUS_DAMAGE_MULTIPLIER
+                    c.energy = min(c.max_energy, c.energy - (damage))
+                    other.energy = min(other.max_energy, other.energy - (damage))
+                    self.datastore.update_collisions(self.time, c.id, other.id, damage)
 
                 if c.energy > c.max_energy:
                     c.energy = c.max_energy
