@@ -27,7 +27,7 @@ else:
     NUM_INIT_FORESTS = 4
 
 
-# ---------- Simulation ----------
+# ---------- Simulation ---------- 
 SIMULATION_WIDTH = 12000
 SIMULATION_HEIGHT = 8000
 NUM_INIT_CREATURE = 75
@@ -58,7 +58,8 @@ NUM_BRAIN_NODES_ENERGY_PENALTY = 0.01
 NUM_BRAIN_CONNECTION_ENERGY_PENALTY = 0.01
 
 # ---------- Collisions ----------
-# DAMAGE_SCALAR = 0  # 0.075
+DAMAGE_SCALAR = 0.075
+EQUAL_RADIUS_DAMAGE_MULTIPLIER = 0.1
 
 # ---------- Brain ----------
 # NUM_INPUTS = 13
