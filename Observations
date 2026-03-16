@@ -1,0 +1,20 @@
+
+
+Desert: No Damage, Limited Inputs : FFalse_D0.0_LTrue
+- all creatures the same size
+- all creatures one of two colors, both colors completely interspersed with one another (pink and purple - hard to see)
+- mostly all spread apart, sometimes 2-5 clump together as they reproduce or go toward food but quickly some die or divert
+- other seeds have the same observations
+
+Desert: Damage, Limited Inputs : FFalse_D0.2_LTrue
+- all creatures the same size
+- all creatures one of two colors, both colors completely interspersed with one another (pink and purple - hard to see)
+- even more spread apart, if they clump near food they quickly move apart
+- they seem to run at each other on purpose, even when they are the same size
+
+Desert: Damage, Several Inputs : FFalse_D0.2_LFalse
+- very occasionally: a creature will circle around a piece of food to maintain max energy until that food runs out
+- even more spread apart, if they clump near food they quickly move apart
+- they do not seem to ever run at each other
+- this might just be my computer lagging but they seem to be able to speed up to get food then slow down?
+

@@ -3,28 +3,28 @@
 # Sharing a copy of this file (along with a seed) makes simulations shareable
 
 # ---------- Evaluation Toggles ------
-SEED = 6395  # 325,73,6395
+SEED = 325 # 325,739,278
 
-IS_DESERT = True  # toggle between desert and forest
+IS_FOREST = False  # toggle between desert and forest
+
+DAMAGE_SCALAR = 0.0  # 0.2
 
 IS_LIMITED = True
 NUM_INPUTS = 10  # 10 if IS_LIMITED=True, 16 if IS_LIMITED = False
 
-DAMAGE_SCALAR = 0.8  # 0.2
-
-TITLE = f"Desert{IS_DESERT}_Damage{DAMAGE_SCALAR}_Limit{IS_LIMITED}"  # use this to name the output files
+TITLE = f"F{IS_FOREST}_D{DAMAGE_SCALAR}_L{IS_LIMITED}___400__"  # use this to name the output files
 
 
-if IS_DESERT:
-    NUM_INIT_FOOD = 200
-    ENERGY_DENSITY = 0.50
-    FOOD_RADIUS = 25
-    NUM_INIT_FORESTS = 0
-else:
-    NUM_INIT_FOOD = 1000
+if IS_FOREST:
+    NUM_INIT_FOOD = 2250
     ENERGY_DENSITY = 0.1
-    FOOD_RADIUS = 15
+    FOOD_RADIUS = 10
     NUM_INIT_FORESTS = 4
+else:
+    NUM_INIT_FOOD = 400  #500
+    ENERGY_DENSITY = 0.5
+    FOOD_RADIUS = 15
+    NUM_INIT_FORESTS = 0
 
 
 # ---------- Simulation ---------- 

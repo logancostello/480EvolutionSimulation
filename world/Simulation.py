@@ -153,6 +153,10 @@ class Simulation:
                 other.pos.x += nx * overlap * o_share
                 other.pos.y += ny * overlap * o_share
 
+                # store starting energy
+                c_start = c.energy
+                other_start = other.energy
+
                 # energy transfer/damage once
                 if c.genome.radius > other.genome.radius:
                     damage = DAMAGE_SCALAR * DEFAULT_MAX_ENERGY * (other.genome.radius / c.genome.radius)
@@ -174,10 +178,16 @@ class Simulation:
                     other.energy = min(other.max_energy, other.energy - (damage))
                     self.datastore.update_collisions(self.time, c.id, other.id, damage)
 
+
                 if c.energy > c.max_energy:
                     c.energy = c.max_energy
                 if other.energy > other.max_energy:
                     other.energy = other.max_energy
+
+                # put leftover energy back into sim
+                delta = (c.energy - c_start) + (other.energy - other_start)
+                if delta < 0:
+                    self.energy_pool += -delta
 
     def update_creature_tree(self):
         self.creature_tree = QuadTree(
