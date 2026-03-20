@@ -2,42 +2,37 @@
 # Simulation details can be tuned here
 # Sharing a copy of this file (along with a seed) makes simulations shareable
 
+
 # ---------- Evaluation Toggles ------
-SEED = 325 # 325,739,278
+SEED = 325  # 325 or 739
 
 IS_FOREST = False  # toggle between desert and forest
 
-DAMAGE_SCALAR = 0.0  # 0.2
+DAMAGE_SCALAR = 0.0  # 0.0 or 0.2
 
 IS_LIMITED = True
 NUM_INPUTS = 10  # 10 if IS_LIMITED=True, 16 if IS_LIMITED = False
+# ------------------------------------
+
 
 TITLE = f"F{IS_FOREST}_D{DAMAGE_SCALAR}_L{IS_LIMITED}___400__"  # use this to name the output files
-
-
-if IS_FOREST:
-    NUM_INIT_FOOD = 2250
-    ENERGY_DENSITY = 0.1
-    FOOD_RADIUS = 10
-    NUM_INIT_FORESTS = 4
-else:
-    NUM_INIT_FOOD = 400  #500
-    ENERGY_DENSITY = 0.5
-    FOOD_RADIUS = 15
-    NUM_INIT_FORESTS = 0
-
 
 # ---------- Simulation ---------- 
 SIMULATION_WIDTH = 12000
 SIMULATION_HEIGHT = 8000
 NUM_INIT_CREATURE = 75
-# NUM_INIT_FOOD = 300
-
 
 # ---------- Food ----------
-# ENERGY_DENSITY = 0.10
-# FOOD_RADIUS = 25
-# NUM_INIT_FORESTS = 0
+if IS_FOREST:
+    NUM_INIT_FOOD = 3750
+    ENERGY_DENSITY = 0.15
+    FOOD_RADIUS = 10
+    NUM_INIT_FORESTS = 4
+else:
+    NUM_INIT_FOOD = 500
+    ENERGY_DENSITY = 0.5
+    FOOD_RADIUS = 15
+    NUM_INIT_FORESTS = 0
 WORLD_SPAWN_WEIGHT = 1  # relative weight for open-world spawning
 FOREST_SPAWN_WEIGHT_MIN = 5 # relative min weight for forest spawn
 FOREST_SPAWN_WEIGHT_MAX = 10  # relative max weight for forest spawn
